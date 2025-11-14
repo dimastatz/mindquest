@@ -1,8 +1,4 @@
 # MindQuest: AI-Powered Kids’ Podcast Platform
-**Project Proposal**  
-**Prepared by:** Charles Day  
-**Date:** [Insert Date]
-
 ---
 
 ## 1. Executive Summary

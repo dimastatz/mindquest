@@ -65,7 +65,7 @@ MindQuest offers:
 - Episode completion rate >80%  
 - Positive parental feedback ≥90%  
 - Safety and accuracy: 0 critical content issues per 100 episodes  
-- User engagement: >10k listens in first 3 months of beta  
+- User engagement: >10k listens in first 3 months of beta
 
 ---
 
@@ -76,8 +76,3 @@ MindQuest offers:
 - Establishes a unique brand in the growing educational podcast space.
 
 ---
-
-**Next Steps:**  
-- Approve MVP budget and resource allocation.  
-- Define target age groups and content topics.  
-- Begin technical development and pilot episode creation.

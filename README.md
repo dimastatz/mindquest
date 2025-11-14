@@ -45,11 +45,11 @@ MindQuest offers:
 ## 5. Technology Stack
 | Component | Suggested Technology |
 |-----------|--------------------|
-| LLM | OpenAI, Anthropic, LLaMA |
-| TTS | Google Cloud TTS, Amazon Polly, ElevenLabs |
+| LLM | OpenAI, Gemini, LLaMA |
+| TTS | Google Cloud TTS, Amazon Polly, ElevenLabs, Kokoro |
 | Moderation | OpenAI moderation + human review |
-| Hosting & Distribution | S3 + podcast hosting platforms |
-| Analytics | Mixpanel, Firebase, or custom dashboards |
+| Hosting & Distribution | Heroku |
+| Analytics | Telegram, Youtube, or podcast platforms analytics |
 
 ---
 

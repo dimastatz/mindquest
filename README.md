@@ -1,5 +1,14 @@
-# MindQuest: AI-Powered Kids’ Podcast Platform
----
+<div align="center">
+<h1 align="center">  MindQuest </h1> 
+<h3>AI-Powered Kids’ Podcast Platform</br></h3>
+<img src="https://img.shields.io/badge/Progress-1%25-red"> <img src="https://img.shields.io/badge/Feedback-Welcome-green">
+</br>
+</br>
+<kbd>
+<img src="/docs/images/deep-signal.png" width="256px"> 
+</kbd>
+</div>
+
 
 ## 1. Executive Summary
 **MindQuest** is an AI-driven platform that generates engaging, educational, and age-appropriate podcasts for children aged 6–12. By combining Large Language Models (LLMs), high-quality Text-to-Speech (TTS) technology, and curated educational content (e.g., Wikipedia), MindQuest transforms verified facts into fun, interactive audio stories.  

@@ -5,7 +5,7 @@
 </br>
 </br>
 <kbd>
-<img src="/docs/images/deep-signal.png" width="256px"> 
+<img src="./mindquest.png" width="256px"> 
 </kbd>
 </div>
 

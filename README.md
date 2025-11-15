@@ -5,7 +5,7 @@
 </br>
 </br>
 <kbd>
-<img src="./mindquest.png" width="256px"> 
+<img src="./docs/imgs/mindquest.png" width="256px"> 
 </kbd>
 </div>
 

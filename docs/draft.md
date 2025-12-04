@@ -31,6 +31,7 @@ Every topic is designed to spark curiosity and encourage exploration.
 For each topic, MindQuest creates a complete podcast script starring two core characters:
 
 ### **The Professor**
+
 - Calm, wise, and warm  
 - Speaks slowly and clearly  
 - Explains everything from first principles  
@@ -38,6 +39,7 @@ For each topic, MindQuest creates a complete podcast script starring two core ch
 - Acts as the mentor and guide  
 
 ### **Pinocchio**
+
 - Naive, curious, funny, and full of childlike wonder  
 - Asks smart Socratic-style questions  
 - Represents the listener’s curiosity  

@@ -1,5 +1,7 @@
 # 🎙️ Episode 1 — **The Body as a Super Machine**
-### *Inside the Incredible Human Body!*  
+
+## *Inside the Incredible Human Body!*
+
 **Characters:** The Professor, Pinocchio  
 **Length:** ~11 minutes spoken  
 **Style:** Wikipedia-for-Kids friendly, factual, simple, clear
@@ -8,7 +10,7 @@
 
 ## INTRO (0:00–0:40)
 
-**SFX: soft music fade-in**
+SFX: soft music fade-in
 
 **Professor (calm):**  
 Hello, young explorers, and welcome to *Inside the Incredible Human Body*. I am The Professor, and today we begin our first journey inside one of the most interesting things ever studied by scientists: the human body.
@@ -140,8 +142,9 @@ Very much so.
 Professor, do these systems talk to each other?
 
 **Professor:**  
-In a way, yes. For example, when you run:  
-- Your **muscles** work harder  
+In a way, yes. For example, when you run:
+
+- Your **muscles** work harder
 - Your **heart** beats faster  
 - Your **lungs** bring in more oxygen  
 - Your **brain** tells your body how to move  

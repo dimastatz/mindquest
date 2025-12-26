@@ -6,7 +6,8 @@ body {
   direction: rtl;
   unicode-bidi: embed;
   text-align: right;
-  font-family: "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", sans-serif;
+  /* Hebrew-friendly font stack; reader will choose available fonts */
+  font-family: "Arial Hebrew", ".SF Hebrew", "Noto Sans Hebrew", Arial, Helvetica, sans-serif;
   line-height: 1.6;
   margin: 0;
   padding: 2rem;

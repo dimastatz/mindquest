@@ -9,6 +9,53 @@
 </kbd>
 </div>
 
+## Mini-Book Generator (Kids 8–12)
+
+Create a kid-friendly mini-book PDF from a topic, using Simple Wikipedia as a primary source and optionally an LLM for expansion/translation.
+
+### Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Generate a Book
+
+```bash
+python -m mindquest.make_minibook "Robotics" -l en -o docs/series/robotics
+```
+
+- Default: 7 chapters (~2000 words each) with 3 questions per chapter and an answers appendix.
+- Output files: `<Topic>-for-Kids-(Ages-8–12)-<lang>.md` and a PDF (if `pandoc/tectonic` or `LibreOffice` are available).
+
+To enable LLM (OpenAI):
+
+```bash
+export OPENAI_API_KEY=your_key
+# optional
+export OPENAI_MODEL=gpt-4o-mini
+```
+
+Disable LLM with `--no-llm`.
+
+### PDF Rendering
+
+- LTR languages: `pandoc` + `tectonic` if available.
+- RTL languages (he, ar, fa, ur): HTML + `soffice --headless` for robust right-to-left output.
+
+Install tools (macOS):
+
+```bash
+brew install pandoc tectonic
+brew install --cask libreoffice
+```
+
+### Licensing
+
+Wikipedia content is CC BY-SA 4.0. The generator includes attribution; share derivative works under compatible terms.
+
 ## 1. Executive Summary
 
 **MindQuest** is an AI-driven platform that generates engaging, educational, and age-appropriate podcasts for children aged 6–12. By combining Large Language Models (LLMs), high-quality Text-to-Speech (TTS) technology, and curated educational content (e.g., Wikipedia), MindQuest transforms verified facts into fun, interactive audio stories.  

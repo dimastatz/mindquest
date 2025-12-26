@@ -1,0 +1,55 @@
+/* RTL layout for Hebrew mini-book */
+html {
+  direction: rtl;
+}
+body {
+  direction: rtl;
+  unicode-bidi: embed;
+  text-align: right;
+  font-family: "Helvetica Neue", Helvetica, Arial, "Apple SD Gothic Neo", sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 2rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  direction: rtl;
+  unicode-bidi: embed;
+  text-align: right;
+  margin: 1.2em 0 0.5em;
+}
+
+p, li {
+  direction: rtl;
+  unicode-bidi: embed;
+  text-align: right;
+}
+
+ol, ul {
+  direction: rtl;
+  unicode-bidi: embed;
+  text-align: right;
+  list-style-position: inside;
+  padding-right: 0;
+  margin-right: 0;
+}
+
+code, pre, .code {
+  direction: ltr;
+  unicode-bidi: embed;
+  text-align: left;
+  font-family: "Menlo", "DejaVu Sans Mono", "Noto Sans Mono", monospace;
+}
+
+hr { border: none; border-top: 1px solid #ddd; margin: 2rem 0; }
+
+a { color: #0645ad; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Optional page-like styling for print */
+@media print {
+  body {
+    margin: 0;
+    padding: 0.75in;
+  }
+}

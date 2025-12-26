@@ -1,0 +1,21 @@
+lang: he
+title: "יסודות רובוטיקה לילדים"
+subtitle: "מיני־ספר"
+author: "MindQuest"
+date: "דצמבר 2025"
+header-includes:
+  - \\usepackage{setspace}
+  - \\setstretch{1.3}
+  - \\usepackage{fancyhdr}
+  - \\pagestyle{fancy}
+  - \\fancyhf{}
+  - \\rfoot{\\thepage}
+  - \\setlength{\\parskip}{0.6em}
+  - |
+    \\AtBeginDocument{\\begin{titlepage}\\centering
+    {\\Huge\\bfseries יסודות רובוטיקה לילדים}\\[1em]
+    {\\Large מיני־ספר}\\[2em]
+    {\\large MindQuest}\\[3em]
+    {\\large דצמבר 2025}
+    \\vfill
+    \\end{titlepage}}

@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Docker test script for CI/CD pipeline
+# Tests, lints, and formats Python code
+
+set -e
+
+echo "=== MindQuest CI/CD Test Pipeline ==="
+
+# Install development dependencies
+echo "📦 Installing dependencies..."
+pip install --quiet --upgrade pip
+pip install --quiet -r requirements.txt
+
+# Install testing and quality tools
+pip install --quiet \
+    pytest>=7.4.0 \
+    pytest-cov>=4.1.0 \
+    black>=23.0.0 \
+    isort>=5.12.0 \
+    flake8>=6.0.0 \
+    pylint>=2.17.0 \
+    mypy>=1.4.0
+
+echo ""
+echo "🔍 Running code quality checks..."
+
+# Format check with Black
+echo ""
+echo "➤ Checking code formatting (Black)..."
+black --check --diff mindquest/ || {
+    echo "❌ Code formatting issues found. Run: black mindquest/"
+    exit 1
+}
+echo "✓ Black formatting passed"
+
+# Import sorting check with isort
+echo ""
+echo "➤ Checking import sorting (isort)..."
+isort --check-only --diff mindquest/ || {
+    echo "❌ Import sorting issues found. Run: isort mindquest/"
+    exit 1
+}
+echo "✓ isort check passed"
+
+# Linting with flake8
+echo ""
+echo "➤ Running flake8 linter..."
+flake8 mindquest/ --max-line-length=100 --extend-ignore=E203,W503 || {
+    echo "❌ Flake8 linting failed"
+    exit 1
+}
+echo "✓ Flake8 passed"
+
+# Linting with pylint
+echo ""
+echo "➤ Running pylint..."
+pylint mindquest/ --max-line-length=100 --disable=C0114,C0115,C0116 || {
+    echo "❌ Pylint failed"
+    exit 1
+}
+echo "✓ Pylint passed"
+
+# Type checking with mypy
+echo ""
+echo "➤ Running type checker (mypy)..."
+mypy mindquest/ --ignore-missing-imports --no-strict-optional || {
+    echo "❌ Type checking failed"
+    exit 1
+}
+echo "✓ mypy passed"
+
+# Run tests with pytest
+echo ""
+echo "➤ Running tests (pytest)..."
+if [ -d "tests" ]; then
+    pytest tests/ -v --cov=mindquest --cov-report=term-missing --cov-report=xml || {
+        echo "❌ Tests failed"
+        exit 1
+    }
+    echo "✓ All tests passed"
+else
+    echo "⚠️  No tests directory found, skipping pytest"
+fi
+
+echo ""
+echo "✅ All CI/CD checks passed successfully!"

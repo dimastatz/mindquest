@@ -3,6 +3,7 @@
 # Tests, lints, and formats Python code
 
 set -e
+set -o noglob  # Disable filename expansion to prevent > and < from creating files
 
 echo "=== MindQuest CI/CD Test Pipeline ==="
 
@@ -13,13 +14,13 @@ pip install --quiet -r requirements.txt
 
 # Install testing and quality tools
 pip install --quiet \
-    pytest>=7.4.0 \
-    pytest-cov>=4.1.0 \
-    black>=23.0.0 \
-    isort>=5.12.0 \
-    flake8>=6.0.0 \
-    pylint>=2.17.0 \
-    mypy>=1.4.0
+    'pytest>=7.4.0' \
+    'pytest-cov>=4.1.0' \
+    'black>=23.0.0' \
+    'isort>=5.12.0' \
+    'flake8>=6.0.0' \
+    'pylint>=2.17.0' \
+    'mypy>=1.4.0'
 
 echo ""
 echo "🔍 Running code quality checks..."

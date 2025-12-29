@@ -1,57 +1,146 @@
 #!/usr/bin/env bash
 # Setup and run all CI/CD checks
-# Creates virtual environment and executes full test pipeline
+# Usage: ./run.sh [clean|test|docker]
 
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="$PROJECT_DIR/.venv"
 
-echo "=== MindQuest Development Setup & Test Runner ==="
-echo "Project: $PROJECT_DIR"
-echo ""
+show_usage() {
+    echo "Usage: ./run.sh [COMMAND]"
+    echo ""
+    echo "Commands:"
+    echo "  clean   - Remove and recreate venv, then run all tests"
+    echo "  test    - Run tests using existing venv (default)"
+    echo "  docker  - Run docker.test file directly"
+    echo ""
+    echo "Examples:"
+    echo "  ./run.sh         # Run tests with existing venv"
+    echo "  ./run.sh clean   # Clean install and test"
+    echo "  ./run.sh docker  # Run docker test pipeline"
+}
 
-# Check Python availability
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Python 3 not found. Please install Python 3.8 or higher."
-    exit 1
-fi
+check_python() {
+    if ! command -v python3 &> /dev/null; then
+        echo "❌ Python 3 not found. Please install Python 3.8 or higher."
+        exit 1
+    fi
+    PYTHON_VERSION=$(python3 --version)
+    echo "✓ Found $PYTHON_VERSION"
+}
 
-PYTHON_VERSION=$(python3 --version)
-echo "✓ Found $PYTHON_VERSION"
-
-# Create virtual environment if it doesn't exist
-if [ ! -d "$VENV_DIR" ]; then
+create_venv() {
     echo ""
     echo "📦 Creating virtual environment..."
     python3 -m venv "$VENV_DIR"
     echo "✓ Virtual environment created at $VENV_DIR"
-else
-    echo "✓ Virtual environment exists at $VENV_DIR"
-fi
+}
 
-# Activate virtual environment
-echo ""
-echo "🔧 Activating virtual environment..."
-source "$VENV_DIR/bin/activate"
+activate_venv() {
+    echo ""
+    echo "🔧 Activating virtual environment..."
+    source "$VENV_DIR/bin/activate"
+    
+    if [ -z "$VIRTUAL_ENV" ]; then
+        echo "❌ Failed to activate virtual environment"
+        exit 1
+    fi
+    echo "✓ Virtual environment activated"
+}
 
-# Verify activation
-if [ -z "$VIRTUAL_ENV" ]; then
-    echo "❌ Failed to activate virtual environment"
-    exit 1
-fi
-echo "✓ Virtual environment activated"
+run_docker_test() {
+    echo "=== Running Docker Test Pipeline ==="
+    echo "Project: $PROJECT_DIR"
+    echo ""
+    
+    cd "$PROJECT_DIR"
+    bash docker.test
+    
+    echo ""
+    echo "✅ Docker test pipeline completed successfully!"
+}
 
-# Run the test pipeline
-echo ""
-echo "🚀 Running CI/CD test pipeline..."
-echo ""
+run_test() {
+    echo "=== MindQuest Test Runner ==="
+    echo "Project: $PROJECT_DIR"
+    echo ""
+    
+    check_python
+    
+    if [ ! -d "$VENV_DIR" ]; then
+        echo "⚠️  Virtual environment not found."
+        create_venv
+    else
+        echo "✓ Virtual environment exists at $VENV_DIR"
+    fi
+    
+    activate_venv
+    
+    echo ""
+    echo "🚀 Running CI/CD test pipeline..."
+    echo ""
+    
+    cd "$PROJECT_DIR"
+    bash docker.test
+    
+    echo ""
+    echo "✅ All checks completed successfully!"
+    echo ""
+    echo "To activate this environment manually, run:"
+    echo "  source $VENV_DIR/bin/activate"
+}
 
-cd "$PROJECT_DIR"
-bash docker.test
+run_clean() {
+    echo "=== MindQuest Clean Install & Test ==="
+    echo "Project: $PROJECT_DIR"
+    echo ""
+    
+    check_python
+    
+    if [ -d "$VENV_DIR" ]; then
+        echo "🗑️  Removing existing virtual environment..."
+        rm -rf "$VENV_DIR"
+        echo "✓ Removed $VENV_DIR"
+    fi
+    
+    create_venv
+    activate_venv
+    
+    echo ""
+    echo "🚀 Running CI/CD test pipeline..."
+    echo ""
+    
+    cd "$PROJECT_DIR"
+    bash docker.test
+    
+    echo ""
+    echo "✅ Clean install and all checks completed successfully!"
+    echo ""
+    echo "To activate this environment manually, run:"
+    echo "  source $VENV_DIR/bin/activate"
+}
 
-echo ""
-echo "✅ All checks completed successfully!"
-echo ""
-echo "To activate this environment manually, run:"
-echo "  source $VENV_DIR/bin/activate"
+# Main command dispatch
+COMMAND="${1:-test}"
+
+case "$COMMAND" in
+    clean)
+        run_clean
+        ;;
+    test)
+        run_test
+        ;;
+    docker)
+        run_docker_test
+        ;;
+    -h|--help|help)
+        show_usage
+        ;;
+    *)
+        echo "❌ Unknown command: $COMMAND"
+        echo ""
+        show_usage
+        exit 1
+        ;;
+esac

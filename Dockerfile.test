@@ -29,7 +29,6 @@ RUN pip install --no-cache-dir \
 # Copy project files
 COPY mindquest/ ./mindquest/
 COPY tests/ ./tests/
-COPY docker.test .
 
 # Run tests by default
-CMD ["bash", "docker.test"]
+CMD ["pytest", "tests/", "-v", "--cov=mindquest", "--cov-report=term-missing"]

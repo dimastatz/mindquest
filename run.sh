@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Setup and run all CI/CD checks
-# Usage: ./run.sh [clean|test|docker]
+# Usage: ./run.sh [clean|test|docker-build|docker-run]
 
 set -e
 
@@ -13,14 +13,12 @@ show_usage() {
     echo "Commands:"
     echo "  clean        - Remove and recreate venv, then run all tests"
     echo "  test         - Run tests using existing venv (default)"
-    echo "  docker       - Run docker.test file directly"
     echo "  docker-build - Build Docker image"
     echo "  docker-run   - Run tests in Docker container"
     echo ""
     echo "Examples:"
     echo "  ./run.sh              # Run tests with existing venv"
     echo "  ./run.sh clean        # Clean install and test"
-    echo "  ./run.sh docker       # Run docker test pipeline"
     echo "  ./run.sh docker-build # Build Docker image"
     echo "  ./run.sh docker-run   # Run in Docker container"
 }
@@ -61,7 +59,7 @@ run_docker_build() {
     cd "$PROJECT_DIR"
     
     echo "🐳 Building mindquest:test image..."
-    docker build -t mindquest:test .
+    docker build -f Dockerfile.test -t mindquest:test .
     
     echo ""
     echo "✅ Docker image built successfully!"
@@ -83,18 +81,6 @@ run_docker_run() {
     echo "✅ Docker test completed!"
 }
 
-run_docker_test() {
-    echo "=== Running Docker Test Pipeline ==="
-    echo "Project: $PROJECT_DIR"
-    echo ""
-    
-    cd "$PROJECT_DIR"
-    bash docker.test
-    
-    echo ""
-    echo "✅ Docker test pipeline completed successfully!"
-}
-
 run_test() {
     echo "=== MindQuest Test Runner ==="
     echo "Project: $PROJECT_DIR"
@@ -112,14 +98,14 @@ run_test() {
     activate_venv
     
     echo ""
-    echo "🚀 Running CI/CD test pipeline..."
+    echo "🚀 Running tests..."
     echo ""
     
     cd "$PROJECT_DIR"
-    bash docker.test
+    pytest tests/ -v --cov=mindquest --cov-report=term-missing
     
     echo ""
-    echo "✅ All checks completed successfully!"
+    echo "✅ All tests completed successfully!"
     echo ""
     echo "To activate this environment manually, run:"
     echo "  source $VENV_DIR/bin/activate"
@@ -142,14 +128,14 @@ run_clean() {
     activate_venv
     
     echo ""
-    echo "🚀 Running CI/CD test pipeline..."
+    echo "🚀 Running tests..."
     echo ""
     
     cd "$PROJECT_DIR"
-    bash docker.test
+    pytest tests/ -v --cov=mindquest --cov-report=term-missing
     
     echo ""
-    echo "✅ Clean install and all checks completed successfully!"
+    echo "✅ Clean install and all tests completed successfully!"
     echo ""
     echo "To activate this environment manually, run:"
     echo "  source $VENV_DIR/bin/activate"
@@ -164,9 +150,6 @@ case "$COMMAND" in
         ;;
     test)
         run_test
-        ;;
-    docker)
-        run_docker_test
         ;;
     docker-build)
         run_docker_build

@@ -1,0 +1,40 @@
+name: Docker CI/CD Tests
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image
+      run: |
+        docker build -f Dockerfile.test -t mindquest:test .
+      
+    - name: Run tests in Docker
+      run: |
+        docker run --rm mindquest:test
+      
+    - name: Upload coverage reports
+      if: success()
+      run: |
+        docker run --rm -v $PWD:/output mindquest:test sh -c "cp coverage.xml /output/" || true
+      
+    - name: Test Summary
+      if: always()
+      run: |
+        echo "✅ Docker CI/CD tests completed"

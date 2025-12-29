@@ -11,29 +11,33 @@ show_usage() {
     echo "Usage: ./run.sh [COMMAND]"
     echo ""
     echo "Commands:"
-    echo "  clean   - Remove and recreate venv, then run all tests"
-    echo "  test    - Run tests using existing venv (default)"
-    echo "  docker  - Run docker.test file directly"
+    echo "  clean        - Remove and recreate venv, then run all tests"
+    echo "  test         - Run tests using existing venv (default)"
+    echo "  docker       - Run docker.test file directly"
+    echo "  docker-build - Build Docker image"
+    echo "  docker-run   - Run tests in Docker container"
     echo ""
     echo "Examples:"
-    echo "  ./run.sh         # Run tests with existing venv"
-    echo "  ./run.sh clean   # Clean install and test"
-    echo "  ./run.sh docker  # Run docker test pipeline"
+    echo "  ./run.sh              # Run tests with existing venv"
+    echo "  ./run.sh clean        # Clean install and test"
+    echo "  ./run.sh docker       # Run docker test pipeline"
+    echo "  ./run.sh docker-build # Build Docker image"
+    echo "  ./run.sh docker-run   # Run in Docker container"
 }
 
 check_python() {
-    if ! command -v python3 &> /dev/null; then
-        echo "❌ Python 3 not found. Please install Python 3.8 or higher."
+    if ! command -v python3.12 &> /dev/null; then
+        echo "❌ Python 3.12 not found. Please install Python 3.12."
         exit 1
     fi
-    PYTHON_VERSION=$(python3 --version)
+    PYTHON_VERSION=$(python3.12 --version)
     echo "✓ Found $PYTHON_VERSION"
 }
 
 create_venv() {
     echo ""
     echo "📦 Creating virtual environment..."
-    python3 -m venv "$VENV_DIR"
+    python3.12 -m venv "$VENV_DIR"
     echo "✓ Virtual environment created at $VENV_DIR"
 }
 
@@ -47,6 +51,36 @@ activate_venv() {
         exit 1
     fi
     echo "✓ Virtual environment activated"
+}
+
+run_docker_build() {
+    echo "=== Building Docker Image ==="
+    echo "Project: $PROJECT_DIR"
+    echo ""
+    
+    cd "$PROJECT_DIR"
+    
+    echo "🐳 Building mindquest:test image..."
+    docker build -t mindquest:test .
+    
+    echo ""
+    echo "✅ Docker image built successfully!"
+    echo ""
+    echo "Run tests with: ./run.sh docker-run"
+}
+
+run_docker_run() {
+    echo "=== Running Tests in Docker ==="
+    echo "Project: $PROJECT_DIR"
+    echo ""
+    
+    cd "$PROJECT_DIR"
+    
+    echo "🐳 Running tests in container..."
+    docker run --rm mindquest:test
+    
+    echo ""
+    echo "✅ Docker test completed!"
 }
 
 run_docker_test() {
@@ -133,6 +167,12 @@ case "$COMMAND" in
         ;;
     docker)
         run_docker_test
+        ;;
+    docker-build)
+        run_docker_build
+        ;;
+    docker-run)
+        run_docker_run
         ;;
     -h|--help|help)
         show_usage

@@ -1,0 +1,35 @@
+# Dockerfile for MindQuest CI/CD Pipeline
+FROM python:3.12-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Install testing and quality tools
+RUN pip install --no-cache-dir \
+    'pytest>=7.4.0' \
+    'pytest-cov>=4.1.0' \
+    'black>=23.0.0' \
+    'isort>=5.12.0' \
+    'flake8>=6.0.0' \
+    'pylint>=2.17.0' \
+    'mypy>=1.4.0'
+
+# Copy project files
+COPY mindquest/ ./mindquest/
+COPY tests/ ./tests/
+COPY docker.test .
+
+# Run tests by default
+CMD ["bash", "docker.test"]

@@ -30,6 +30,7 @@ class MiniBook(TypedDict):
 
     topic: str
     language: str
+    age_group: str
     title: str
     chapters: List[Chapter]
 
@@ -38,6 +39,7 @@ def create_minibook(
     topic: str,
     *,
     language: str = "en",
+    age_group: str = "8-12",
     title: Optional[str] = None,
     chapters_count: int = 7,
     words_per_chapter: int = 2000,
@@ -52,14 +54,15 @@ def create_minibook(
     Args:
             topic: Subject to cover.
             language: Target language (e.g., "en", "he").
-            title: Optional book title; defaults to "{topic} for Kids (8–12)".
+            age_group: Target age range (e.g., "8-12", "6-8", "10-14"); default "8-12".
+            title: Optional book title; defaults to "{topic} for Kids ({age_group})".
             chapters_count: Number of chapters; default 7.
             words_per_chapter: Target length per chapter; used by future implementation.
 
     Returns:
             MiniBook: a container with placeholder chapters.
     """
-    book_title = title or f"{topic} for Kids (8–12)"
+    book_title = title or f"{topic} for Kids ({age_group})"
     chapters: List[Chapter] = []
     for i in range(1, chapters_count + 1):
         ch_title = f"{topic}: Chapter {i}"
@@ -88,6 +91,7 @@ def create_minibook(
     return {
         "topic": topic,
         "language": language,
+        "age_group": age_group,
         "title": book_title,
         "chapters": chapters,
     }

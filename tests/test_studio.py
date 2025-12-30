@@ -22,7 +22,8 @@ class TestCreateMinibook:
         
         assert book["topic"] == "Robotics"
         assert book["language"] == "en"
-        assert book["title"] == "Robotics for Kids (8–12)"
+        assert book["age_group"] == "8-12"
+        assert book["title"] == "Robotics for Kids (8-12)"
         assert len(book["chapters"]) == 7
         
     def test_create_minibook_custom_params(self):
@@ -30,6 +31,7 @@ class TestCreateMinibook:
         book = create_minibook(
             "Space",
             language="he",
+            age_group="10-14",
             title="Space Adventures",
             chapters_count=5,
             words_per_chapter=1500,
@@ -37,6 +39,7 @@ class TestCreateMinibook:
         
         assert book["topic"] == "Space"
         assert book["language"] == "he"
+        assert book["age_group"] == "10-14"
         assert book["title"] == "Space Adventures"
         assert len(book["chapters"]) == 5
 

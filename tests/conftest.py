@@ -31,6 +31,7 @@ def sample_minibook():
     return {
         "topic": "Testing",
         "language": "en",
+        "age_group": "8-12",
         "title": "Testing for Kids",
         "chapters": [
             {

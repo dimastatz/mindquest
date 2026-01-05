@@ -102,7 +102,7 @@ run_test() {
     echo ""
     
     cd "$PROJECT_DIR"
-    pytest tests/ -v --cov=mindquest --cov-report=term-missing
+    pytest tests/ -v --cov=mindquest --cov-report=term-missing --cov-fail-under=95
     
     echo ""
     echo "✅ All tests completed successfully!"
@@ -132,7 +132,7 @@ run_clean() {
     echo ""
     
     cd "$PROJECT_DIR"
-    pytest tests/ -v --cov=mindquest --cov-report=term-missing
+    pytest tests/ -v --cov=mindquest --cov-report=term-missing --cov-fail-under=95
     
     echo ""
     echo "✅ Clean install and all tests completed successfully!"

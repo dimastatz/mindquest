@@ -1,13 +1,57 @@
 import pytest
+from unittest.mock import patch, MagicMock
 from mindquest import studio
 
-def test_plan_series():
-    """Test plan_series returns None (stub behavior)."""
+def test_plan_series_mocked():
+    """Test plan_series with a mocked LLM call."""
     theme = "Space"
-    # The function is currently a stub, so it returns None.
-    # We verify that it runs without error.
-    result = studio.plan_series(theme)
-    assert result is None
+    api_key = "fake_key"
+    mock_response = MagicMock()
+    mock_response.text = '["Episode 1", "Episode 2"]'
+    
+    with patch('google.genai.Client') as mock_client_class:
+        mock_client = mock_client_class.return_value
+        mock_client.models.generate_content.return_value = mock_response
+        
+        result = studio.plan_series(theme, api_key=api_key)
+        
+        assert result == ["Episode 1", "Episode 2"]
+        mock_client.models.generate_content.assert_called_once()
+
+def test_plan_series_missing_api_key():
+    """Test plan_series raises ValueError when API key is missing."""
+    theme = "Space"
+    # Passing empty string or None should raise ValueError
+    with pytest.raises(ValueError, match="API key is required"):
+        studio.plan_series(theme, api_key="")
+
+def test_plan_series_invalid_json():
+    """Test plan_series raises ValueError when LLM returns invalid JSON."""
+    theme = "Space"
+    api_key = "fake_key"
+    mock_response = MagicMock()
+    mock_response.text = "Invalid JSON"
+    
+    with patch('google.genai.Client') as mock_client_class:
+        mock_client = mock_client_class.return_value
+        mock_client.models.generate_content.return_value = mock_response
+        
+        with pytest.raises(ValueError, match="Failed to parse LLM response"):
+            studio.plan_series(theme, api_key=api_key)
+
+def test_plan_series_json_not_list():
+    """Test plan_series raises ValueError when LLM returns JSON that is not a list."""
+    theme = "Space"
+    api_key = "fake_key"
+    mock_response = MagicMock()
+    mock_response.text = '{"episodes": ["Episode 1"]}'
+    
+    with patch('google.genai.Client') as mock_client_class:
+        mock_client = mock_client_class.return_value
+        mock_client.models.generate_content.return_value = mock_response
+        
+        with pytest.raises(ValueError, match="Failed to parse LLM response: LLM response was not a list."):
+            studio.plan_series(theme, api_key=api_key)
 
 def test_generate_script():
     """Test generate_script returns None (stub behavior)."""

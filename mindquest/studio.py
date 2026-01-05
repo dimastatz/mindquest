@@ -1,4 +1,6 @@
+import json
 from typing import List, Optional
+from google import genai
 
 """
 MindQuest Studio - Functional API
@@ -8,17 +10,59 @@ This module handles the core content creation pipeline including theme planning,
 script generation, audio production, and book creation.
 """
 
-def plan_series(theme: str) -> List[str]:
+def _call_llm(prompt: str, api_key: str) -> str:
+    """
+    Calls Google's Gemini LLM using the google-genai library.
+    Functional approach: no global configuration.
+    
+    Args:
+        prompt (str): The prompt to send to the LLM.
+        api_key (str): The API key for authentication.
+
+    Raises:
+        ValueError: If api_key is not provided.
+    """
+    if not api_key:
+        raise ValueError("API key is required to call the LLM.")
+
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model='gemini-2.0-flash',
+        contents=prompt,
+    )
+    return response.text
+
+def plan_series(theme: str, api_key: str) -> List[str]:
     """
     Generates a mini-series outline for a given theme.
-
-    Args:
-        theme (str): A broad knowledge domain (e.g., "Engineering", "Math").
-
-    Returns:
-        List[str]: A list of episode topics designed to spark curiosity.
+    Functional approach: dependencies are passed as arguments.
     """
-    pass
+    system_instruction = (
+        "You are the lead producer for 'MindQuest', a science podcast for kids (8-12). "
+        "Your goal is to break down a broad theme into exciting episode topics."
+    )
+    
+    user_prompt = (
+        f"Theme: {theme}\n"
+        "Task: Create a list of episode titles.\n"
+        "Constraint: Return ONLY a valid JSON list of strings.\n"
+    )
+
+    full_prompt = f"{system_instruction}\n\n{user_prompt}"
+    
+    response_text = _call_llm(full_prompt, api_key)
+    
+    try:
+        # Clean and parse
+        clean_text = response_text.replace("```json", "").replace("```", "").strip()
+        series_plan = json.loads(clean_text)
+        
+        if isinstance(series_plan, list):
+            return series_plan
+        raise ValueError("LLM response was not a list.")
+            
+    except (json.JSONDecodeError, Exception) as e:
+        raise ValueError(f"Failed to parse LLM response: {e}")
 
 def generate_script(topic: str) -> str:
     """

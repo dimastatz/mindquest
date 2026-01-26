@@ -1,0 +1,26 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "./run.sh": true,
+        "/^cd /Users/dstatz/Documents/pgit/mindquest && source \\.venv/bin/activate && python << 'EOF'\nimport inspect\nfrom mindquest import create_script, voice_over\n\n# Verify function signatures\ncreate_script_sig = inspect\\.signature\\(create_script\\)\nvoice_over_sig = inspect\\.signature\\(voice_over\\)\n\nprint\\(\"✓ Function signatures verified:\"\\)\nprint\\(f\"  create_script\\{create_script_sig\\}\"\\)\nprint\\(f\"  voice_over\\{voice_over_sig\\}\"\\)\n\n# Check docstrings\nprint\\(\"\\\\n✓ Function docstrings present:\"\\)\nprint\\(f\"  create_script: \\{bool\\(create_script\\.__doc__\\)\\}\"\\)\nprint\\(f\"  voice_over: \\{bool\\(voice_over\\.__doc__\\)\\}\"\\)\n\n# Verify they are callable\nprint\\(\"\\\\n✓ Functions are callable:\"\\)\nprint\\(f\"  create_script: \\{callable\\(create_script\\)\\}\"\\)\nprint\\(f\"  voice_over: \\{callable\\(voice_over\\)\\}\"\\)\nEOF\n$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "pytest": true,
+        "/^source \\.venv/bin/activate && pytest tests/test_gemini_integration\\.py -v$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^source \\.venv/bin/activate && pytest tests/test_gemini_integration\\.py -v 2>&1 \\| head -15$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^source \\.venv/bin/activate && pytest tests/test_gemini_integration\\.py::TestGeminiIntegration::test_create_podcast_about_space -v 2>&1 \\| grep -A 5 \"SKIPPED\\\\\\|setup_method\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^echo \"API Key status: \\$GEMINI_API_KEY\" && python3 -c \"import os; print\\('Set' if os\\.getenv\\('GEMINI_API_KEY'\\) else 'Not set'\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

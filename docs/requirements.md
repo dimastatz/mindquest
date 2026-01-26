@@ -1,6 +1,4 @@
-Here is the requirements document rewritten in a structured, standard Markdown format optimized for an AI Coding Agent.
 
----
 
 # Speech Project: Automated Kids' Podcast Studio
 

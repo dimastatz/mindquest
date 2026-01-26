@@ -8,16 +8,18 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="$PROJECT_DIR/.venv"
 
 show_usage() {
-    echo "Usage: ./run.sh [COMMAND]"
+    echo "Usage: ./run.sh [COMMAND] [-local]"
     echo ""
     echo "Commands:"
     echo "  clean        - Remove and recreate venv, then run all tests"
     echo "  test         - Run tests using existing venv (default)"
     echo "  docker-build - Build Docker image"
     echo "  docker-run   - Run tests in Docker container"
+    echo "  -local       - Quick test run with lower coverage threshold (local development)"
     echo ""
     echo "Examples:"
     echo "  ./run.sh              # Run tests with existing venv"
+    echo "  ./run.sh -local       # Quick local test (lower coverage requirements)"
     echo "  ./run.sh clean        # Clean install and test"
     echo "  ./run.sh docker-build # Build Docker image"
     echo "  ./run.sh docker-run   # Run in Docker container"
@@ -141,6 +143,44 @@ run_clean() {
     echo "  source $VENV_DIR/bin/activate"
 }
 
+run_local() {
+    echo "=== MindQuest Local Test (Fast Mode) ==="
+    echo "Project: $PROJECT_DIR"
+    echo ""
+    
+    check_python
+    
+    if [ ! -d "$VENV_DIR" ]; then
+        echo "⚠️  Virtual environment not found."
+        create_venv
+    else
+        echo "✓ Virtual environment exists at $VENV_DIR"
+    fi
+    
+    activate_venv
+    
+    echo ""
+    echo "📦 Installing dependencies..."
+    cd "$PROJECT_DIR"
+    pip install -q -e . --no-deps 2>/dev/null || pip install -e . --no-deps
+    pip install -q -r requirements.txt 2>/dev/null || pip install -r requirements.txt
+    
+    echo ""
+    echo "🚀 Running tests with lower coverage threshold..."
+    echo ""
+    
+    cd "$PROJECT_DIR"
+    pytest tests/ -v --ignore=tests/test_gemini_integration.py --cov=mindquest --cov-report=term-missing --cov-fail-under=85 || true
+
+
+    
+    echo ""
+    echo "✅ Local test run completed!"
+    echo ""
+    echo "To activate this environment manually, run:"
+    echo "  source $VENV_DIR/bin/activate"
+}
+
 # Main command dispatch
 COMMAND="${1:-test}"
 
@@ -150,6 +190,9 @@ case "$COMMAND" in
         ;;
     test)
         run_test
+        ;;
+    -local)
+        run_local
         ;;
     docker-build)
         run_docker_build

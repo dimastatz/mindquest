@@ -13,6 +13,7 @@
 
 Create a kid-friendly mini-book PDF from a topic, using Simple Wikipedia as a primary source and optionally an LLM for expansion/translation.
 
+
 ### Setup
 
 ```bash

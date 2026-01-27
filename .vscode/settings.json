@@ -21,6 +21,10 @@
         "/^echo \"API Key status: \\$GEMINI_API_KEY\" && python3 -c \"import os; print\\('Set' if os\\.getenv\\('GEMINI_API_KEY'\\) else 'Not set'\\)\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^source \\.venv/bin/activate && python run_podcast\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

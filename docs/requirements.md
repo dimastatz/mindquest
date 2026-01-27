@@ -13,7 +13,7 @@
 
 The system must expose two primary pure functions to handle script generation and audio synthesis.
 
-#### **Function: `create_script**`
+#### Function: `create_script`
 
 * **Signature:** `create_script(topic: str) -> str`
 * **Workflow:**
@@ -28,7 +28,7 @@ The system must expose two primary pure functions to handle script generation an
 
 
 
-#### **Function: `voice_over**`
+#### Function: `voice_over`
 
 * **Signature:** `voice_over(key: str, script: str, languages: str) -> bytes`
 * **Workflow:**
@@ -54,7 +54,7 @@ The system must expose two primary pure functions to handle script generation an
 
 * **Language:** Python **3.14.1**
 * **Architecture:** Python Library (must be structured for deployment to PyPI).
-* **AI Provider:** Google Gemini (Multimodal LLM).
+* **AI Provider:** ChatGPT (Multimodal LLM).
 * *Constraint:* The API Key must be passed as a parameter, not hardcoded.
 
 
@@ -64,7 +64,7 @@ The system must expose two primary pure functions to handle script generation an
 * **Paradigm:** **Functional Programming**.
 * The majority of the codebase must be implemented as **pure functions** (deterministic, no side effects).
 * Avoid class-based OOP unless strictly necessary for state management integration.
-
+* Do not create files in the root folder. It should stay clean. All Python scripts should go to mindquest/mindquest all test to mindquest/tests and all docs to mindquest/docs
 
 
 ---
@@ -79,4 +79,4 @@ The task is considered complete only when the automated test script executes wit
 
 * **Command:** `run.sh -local`
 * **Condition:** The script must generate a valid script and a valid audio file based on the input topic.
-
+* **Run.sh**: you cannot change the script run.sh. If change is needed asks.

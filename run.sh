@@ -44,14 +44,6 @@ elif [ $1 = "-docker" ]; then
     # build docker and run
     docker build --tag mindquest-image --build-arg CACHEBUST=$(date +%s) . --file Dockerfile.test
     docker run --name mindquest-container -p 8888:8888 -d mindquest-image
-elif [ $1 = "-benchmark" ]; then
-    echo "Running mindquest Server"
-    kill $(lsof -t -i:8181) 
-    nohup uvicorn mindquest.fast_server:app --host 0.0.0.0 --port 8181 &
-    sleep 2s
-    echo "Running mindquest benchmark tests"
-    pytest -v -s tests/benchmark
-    kill $(lsof -t -i:8181)
 elif [ $1 = "-run-server" ]; then
     echo "Running mindquest server"
     kill $(lsof -t -i:8181) 

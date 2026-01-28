@@ -55,7 +55,7 @@ python_files = "test_*.py"
 addopts = "--strict-markers -v"
 markers = [
     "slow: marks tests as slow",
-    "integration: marks tests as integration tests requiring API keys",
+    "integration: marks tests as integration tests",
 ]
 
 [tool.coverage.run]

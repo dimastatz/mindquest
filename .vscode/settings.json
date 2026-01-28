@@ -25,6 +25,16 @@
         "/^source \\.venv/bin/activate && python run_podcast\\.py$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "timeout": true,
+        "/^source \\.venv/bin/activate && python -m pytest tests/test_all\\.py -v --tb=short 2>&1 \\| head -150$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^source \\.venv/bin/activate && python -c \"from mindquest import create_script, voice_over; print\\('Imports OK'\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "pylint": true
     }
 }

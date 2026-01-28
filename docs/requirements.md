@@ -62,7 +62,7 @@ The system must expose two primary pure functions to handle script generation an
 ### 3.2 Coding Standards
 
 * **Paradigm:** **Functional Programming**.
-* The majority of the codebase must be implemented as **pure functions** (deterministic, no side effects).
+* 90% of the codebase must be implemented as **pure functions** (deterministic, no side effects).
 * Avoid class-based OOP unless strictly necessary for state management integration.
 * Do not create files in the root folder. It should stay clean. All Python scripts should go to mindquest/mindquest all test to mindquest/tests and all docs to mindquest/docs
 
@@ -79,4 +79,5 @@ The task is considered complete only when the automated test script executes wit
 
 * **Command:** `run.sh -local`
 * **Condition:** The script must generate a valid script and a valid audio file based on the input topic.
-* **Run.sh**: you cannot change the script run.sh. If change is needed asks.
+* **Run.sh**: you cannot change the script run.sh. 
+* **Testing:**: perform testing with pytest and keep all in one file

@@ -1,33 +1,30 @@
 """Core script generation functionality for MindQuest."""
 
 from mindquest.utils import search_wikikids, get_wikikids_summary
-from mindquest.utils.chatgpt import generate_script_with_chatgpt
+from mindquest.utils.gemini import generate_script_with_gemini
 
 
-def create_script(topic: str, api_key: str) -> str:
+def create_script(topic: str, number_of_words: int = 500) -> str:
     """
     Generate an educational podcast script for children.
 
     This function:
     1. Searches WikiKids for age-appropriate information about the topic
-    2. Uses ChatGPT-4 LLM to synthesize the data into a conversational script
+    2. Uses Google Gemini LLM to synthesize the data into a conversational script
     3. Returns the script featuring Plato (wise professor) and Pixel (curious kid)
 
     Args:
         topic: The educational topic for the podcast.
-        api_key: OpenAI API key (must be provided as parameter, not hardcoded).
+        number_of_words: Target word count for the script (default: 500).
 
     Returns:
         A conversational podcast script as a string.
 
     Raises:
-        ValueError: If topic is empty or api_key is not provided.
+        ValueError: If topic is empty.
     """
     if not topic or not isinstance(topic, str) or topic.strip() == "":
         raise ValueError("Topic must be a non-empty string")
-
-    if not api_key or not isinstance(api_key, str):
-        raise ValueError("API key must be provided")
 
     topic = topic.strip()
 
@@ -43,7 +40,7 @@ Search Results:
 {search_results}
 """
 
-    # Generate conversational script using ChatGPT
-    script = generate_script_with_chatgpt(topic, context, api_key)
+    # Generate conversational script using Gemini
+    script = generate_script_with_gemini(topic, context, number_of_words)
 
     return script

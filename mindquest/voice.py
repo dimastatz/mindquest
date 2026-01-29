@@ -2,7 +2,7 @@
 
 import re
 from typing import List, Tuple
-from mindquest.utils.chatgpt import generate_audio_with_chatgpt
+from mindquest.utils.gemini import generate_audio_with_gemini
 
 
 def parse_script_segments(script: str) -> List[Tuple[str, str]]:
@@ -35,11 +35,11 @@ def voice_over(key: str, script: str, languages: str = "en") -> bytes:
 
     This function:
     1. Parses the input script to identify speaker segments
-    2. Generates Text-to-Speech audio using ChatGPT Multimodal capabilities
+    2. Generates Text-to-Speech audio using Google Gemini Multimodal capabilities
     3. Returns the final audio file as bytes
 
     Args:
-        key: OpenAI API key (passed as parameter, not hardcoded).
+        key: Google Gemini API key (passed as parameter, not hardcoded).
         script: The podcast script with speaker annotations.
         languages: Comma-separated language codes (default: "en" for English).
 
@@ -68,10 +68,9 @@ def voice_over(key: str, script: str, languages: str = "en") -> bytes:
     for character, dialogue in segments:
         try:
             # Generate audio with emotional annotation based on character
-            audio_bytes = generate_audio_with_chatgpt(
+            audio_bytes = generate_audio_with_gemini(
                 script=dialogue,
                 character=character,
-                api_key=key,
                 language=languages.split(",")[0].strip(),
             )
 
@@ -102,7 +101,7 @@ def extract_character_audio(
     Args:
         script: The podcast script.
         character: The character name to extract audio for.
-        api_key: OpenAI API key.
+        api_key: Google Gemini API key.
         language: Language code (default: "en").
 
     Returns:
@@ -116,10 +115,9 @@ def extract_character_audio(
 
     combined_dialogue = " ".join(character_dialogues)
 
-    audio_bytes = generate_audio_with_chatgpt(
+    audio_bytes = generate_audio_with_gemini(
         script=combined_dialogue,
         character=character,
-        api_key=api_key,
         language=language,
     )
 

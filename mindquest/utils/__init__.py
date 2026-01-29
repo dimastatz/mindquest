@@ -1,14 +1,14 @@
 """Utility functions for MindQuest."""
 
 from mindquest.utils.wikikids import search_wikikids, get_wikikids_summary
-from mindquest.utils.chatgpt import (
-    generate_script_with_chatgpt,
-    generate_audio_with_chatgpt,
+from mindquest.utils.gemini import (
+    generate_script_with_gemini,
+    generate_audio_with_gemini,
 )
 
 __all__ = [
     "search_wikikids",
     "get_wikikids_summary",
-    "generate_script_with_chatgpt",
-    "generate_audio_with_chatgpt",
+    "generate_script_with_gemini",
+    "generate_audio_with_gemini",
 ]

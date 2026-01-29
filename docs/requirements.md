@@ -15,11 +15,11 @@ The system must expose two primary pure functions to handle script generation an
 
 #### Function: `create_script`
 
-* **Signature:** `create_script(topic: str) -> str`
+* **Signature:** `create_script(api_key: str, topic: str, number_of_words = 500) -> str`
 * **Workflow:**
 1. Accept a topic string.
 2. Search **WikiKids** to gather factual, age-appropriate information.
-3. Utilize **Google Gemini LLM** to synthesize the gathered data into a conversational script.
+3. Utilize **ChatGPT LLM** to synthesize the gathered data into a conversational script.
 
 
 * **Character Profiles:**
@@ -30,7 +30,7 @@ The system must expose two primary pure functions to handle script generation an
 
 #### Function: `voice_over`
 
-* **Signature:** `voice_over(key: str, script: str, languages: str) -> bytes`
+* **Signature:** `voice_over(api_key: str, script: str, languages: str) -> bytes`
 * **Workflow:**
 1. Parse the input script to identify speaker segments.
 2. Generate Text-to-Speech (TTS) audio using **Google Gemini Multimodal** capabilities.

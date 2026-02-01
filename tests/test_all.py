@@ -34,6 +34,8 @@ def test_create_script_valid_inputs():
 
         assert isinstance(result, str)
         assert len(result) > 0
+        # Verify language defaults to 'en' (passed as 4th positional arg)
+        assert mock_generate.call_args[0][3] == "en"
 
 
 def test_create_script_with_word_count():
@@ -49,6 +51,22 @@ def test_create_script_with_word_count():
 
         create_script("key", "Topic", 1000)
         assert mock_generate.called
+
+
+def test_create_script_with_language():
+    """Test script creation with specific language."""
+    with patch("mindquest.studio.get_wikikids_summary") as mock_summary, patch(
+        "mindquest.studio.search_wikikids"
+    ) as mock_search, patch(
+        "mindquest.studio.generate_script_with_chatgpt"
+    ) as mock_generate:
+        mock_summary.return_value = "Summary"
+        mock_search.return_value = "Results"
+        mock_generate.return_value = "Script"
+
+        create_script("key", "Topic", language="he")
+        # Verify language was passed to the ChatGPT function (4th positional arg)
+        assert mock_generate.call_args[0][3] == "he"
 
 
 def test_create_script_empty_topic():

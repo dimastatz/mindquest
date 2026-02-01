@@ -19,7 +19,9 @@ from mindquest.utils.chatgpt import (
 # ============================================================================
 
 
-def create_script(api_key: str, topic: str, number_of_words: int = 500) -> str:
+def create_script(
+    api_key: str, topic: str, number_of_words: int = 500, language: str = "en"
+) -> str:
     """
     Generate an educational podcast script for children.
 
@@ -32,9 +34,10 @@ def create_script(api_key: str, topic: str, number_of_words: int = 500) -> str:
         api_key: OpenAI API key (must be provided as parameter, not hardcoded).
         topic: The educational topic for the podcast.
         number_of_words: Target word count for the script (default: 500).
+        language: Language code for script generation (default: "en" for English).
 
     Returns:
-        A conversational podcast script as a string.
+        A conversational podcast script as a string in the specified language.
 
     Raises:
         ValueError: If topic is empty or api_key is not provided.
@@ -61,8 +64,8 @@ Search Results:
 Target Word Count: {number_of_words}
 """
 
-    # Generate conversational script using ChatGPT
-    script = generate_script_with_chatgpt(topic, context, api_key)
+    # Generate conversational script using ChatGPT in target language
+    script = generate_script_with_chatgpt(topic, context, api_key, language)
 
     return script
 
@@ -231,7 +234,9 @@ def generate_podcast(
     # Generate script (5 min ≈ 700 words at ~140 wpm)
     print("\n📝 Creating script...")
     try:
-        script = create_script(api_key, topic, number_of_words=word_count)
+        script = create_script(
+            api_key, topic, number_of_words=word_count, language=languages
+        )
         print(f"✓ Script generated ({len(script)} characters)")
         print("\n--- Script Preview ---")
         print(script[:500] + "...\n")

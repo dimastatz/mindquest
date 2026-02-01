@@ -3,7 +3,9 @@
 from openai import OpenAI
 
 
-def generate_script_with_chatgpt(topic: str, context: str, api_key: str) -> str:
+def generate_script_with_chatgpt(
+    topic: str, context: str, api_key: str, language: str = "en"
+) -> str:
     """
     Generate a podcast script using ChatGPT.
 
@@ -11,6 +13,7 @@ def generate_script_with_chatgpt(topic: str, context: str, api_key: str) -> str:
         topic: The educational topic for the podcast.
         context: Background information from WikiKids.
         api_key: OpenAI API key.
+        language: Language code for script generation (default: "en" for English).
 
     Returns:
         A conversational podcast script with [Plato] and [Pixel] characters.
@@ -21,7 +24,24 @@ def generate_script_with_chatgpt(topic: str, context: str, api_key: str) -> str:
     try:
         client = OpenAI(api_key=api_key)
 
-        prompt = f"""Generate a podcast script for children aged 8-12 about "{topic}".
+        # Language names mapping for better prompts
+        language_names = {
+            "en": "English",
+            "es": "Spanish",
+            "fr": "French",
+            "de": "German",
+            "it": "Italian",
+            "pt": "Portuguese",
+            "ru": "Russian",
+            "ja": "Japanese",
+            "zh": "Chinese",
+            "ar": "Arabic",
+            "he": "Hebrew",
+            "hi": "Hindi",
+        }
+        lang_name = language_names.get(language, language.upper())
+
+        prompt = f"""Generate a podcast script in {lang_name} for children aged 8-12 about "{topic}".
 
 The script should feature two characters:
 - Plato: A wise, old professor who explains concepts
@@ -32,7 +52,8 @@ Use the following context:
 
 Format the script with character names in brackets like [Plato] and [Pixel].
 Make it engaging, educational, and fun for kids.
-Target around 500 words."""
+Target around 500 words.
+Write the entire script in {lang_name}."""
 
         response = client.chat.completions.create(
             model="gpt-4",

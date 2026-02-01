@@ -49,10 +49,13 @@ Target around 500 words."""
 
 
 def generate_audio_with_chatgpt(
-    script: str, character: str, api_key: str, language: str = "en"
+    script: str,
+    character: str,
+    api_key: str,
+    language: str = "en",  # pylint: disable=unused-argument
 ) -> bytes:
     """
-    Generate audio bytes using ChatGPT multimodal capabilities.
+    Generate audio bytes using OpenAI TTS API.
 
     Args:
         script: The dialogue text to convert to speech.
@@ -71,37 +74,22 @@ def generate_audio_with_chatgpt(
 
         # Define voice characteristics based on character
         voice_config = {
-            "Plato": {
-                "persona": "Wise Professor",
-                "tone": "Slow, deliberate, calm, and explanatory",
-            },
-            "Pixel": {
-                "persona": "10-year-old Child",
-                "tone": "Fast, playful, expressive, excited",
-            },
+            "Plato": "onyx",  # Deep, calm voice
+            "Pixel": "shimmer",  # Bright, energetic voice
         }
 
-        config = voice_config.get(character, voice_config["Pixel"])
+        voice = voice_config.get(character, "shimmer")
 
-        prompt = f"""Convert the following text to speech instructions for a voice acting model.
-Character: {config['persona']}
-Tone: {config['tone']}
-Language: {language}
-Text: {script}
-
-Provide detailed voice direction notes but DO NOT generate actual audio bytes."""
-
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.5,
+        # Use OpenAI TTS API to generate actual audio
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice=voice,
+            input=script,
         )
 
-        # For now, return a placeholder audio representation
-        # In production, this would integrate with actual TTS service
-        audio_instructions = response.choices[0].message.content
-        return audio_instructions.encode("utf-8")
+        # Return the audio bytes directly
+        return response.content
     except Exception as exception:
         raise RuntimeError(
-            f"Failed to generate audio with ChatGPT: {str(exception)}"
+            f"Failed to generate audio with OpenAI TTS: {str(exception)}"
         ) from exception

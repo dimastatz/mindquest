@@ -3,8 +3,13 @@
 from unittest.mock import patch, MagicMock
 import pytest
 import requests
-from mindquest.script import create_script
-from mindquest.voice import voice_over, parse_script_segments, extract_character_audio
+from mindquest.studio import (
+    create_script,
+    voice_over,
+    parse_script_segments,
+    extract_character_audio,
+    generate_podcast,
+)
 from mindquest.utils import search_wikikids, get_wikikids_summary
 from mindquest.utils.chatgpt import (
     generate_script_with_chatgpt,
@@ -16,10 +21,10 @@ from mindquest.types import CharacterProfile, PLATO, PIXEL
 # Script Generation Tests
 def test_create_script_valid_inputs():
     """Test script creation with valid inputs."""
-    with patch("mindquest.script.get_wikikids_summary") as mock_summary, patch(
-        "mindquest.script.search_wikikids"
+    with patch("mindquest.studio.get_wikikids_summary") as mock_summary, patch(
+        "mindquest.studio.search_wikikids"
     ) as mock_search, patch(
-        "mindquest.script.generate_script_with_chatgpt"
+        "mindquest.studio.generate_script_with_chatgpt"
     ) as mock_generate:
         mock_summary.return_value = "Solar system summary"
         mock_search.return_value = "Solar system results"
@@ -33,10 +38,10 @@ def test_create_script_valid_inputs():
 
 def test_create_script_with_word_count():
     """Test script creation with specific word count."""
-    with patch("mindquest.script.get_wikikids_summary") as mock_summary, patch(
-        "mindquest.script.search_wikikids"
+    with patch("mindquest.studio.get_wikikids_summary") as mock_summary, patch(
+        "mindquest.studio.search_wikikids"
     ) as mock_search, patch(
-        "mindquest.script.generate_script_with_chatgpt"
+        "mindquest.studio.generate_script_with_chatgpt"
     ) as mock_generate:
         mock_summary.return_value = "Summary"
         mock_search.return_value = "Results"
@@ -96,13 +101,13 @@ def test_generate_script_api_error():
 
 
 def test_generate_audio_with_chatgpt():
-    """Test audio generation with ChatGPT."""
+    """Test audio generation with OpenAI TTS."""
     with patch("mindquest.utils.chatgpt.OpenAI") as mock_openai:
         mock_client = MagicMock()
         mock_openai.return_value = mock_client
         mock_response = MagicMock()
-        mock_response.choices[0].message.content = "audio_data"
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_response.content = b"audio_data"
+        mock_client.audio.speech.create.return_value = mock_response
 
         result = generate_audio_with_chatgpt("Hello", "Plato", "key")
         assert isinstance(result, bytes)
@@ -111,7 +116,7 @@ def test_generate_audio_with_chatgpt():
 def test_generate_audio_api_error():
     """Test audio generation handles API errors."""
     with patch("mindquest.utils.chatgpt.OpenAI") as mock_openai:
-        mock_openai.return_value.chat.completions.create.side_effect = Exception(
+        mock_openai.return_value.audio.speech.create.side_effect = Exception(
             "API Error"
         )
 
@@ -142,17 +147,17 @@ def test_parse_script_with_dashes():
 
 def test_parse_empty_script():
     """Test parsing empty script returns empty list."""
-    assert parse_script_segments("") == []
+    assert not parse_script_segments("")
 
 
 def test_parse_script_no_tags():
     """Test parsing script without tags returns empty list."""
-    assert parse_script_segments("Plain text") == []
+    assert not parse_script_segments("Plain text")
 
 
 def test_voice_over_valid_input():
     """Test voice_over with valid script."""
-    with patch("mindquest.voice.generate_audio_with_chatgpt") as mock_audio:
+    with patch("mindquest.studio.generate_audio_with_chatgpt") as mock_audio:
         mock_audio.return_value = b"audio_data"
 
         result = voice_over("key", "[Plato]: Hello.\n[Pixel]: Hi!")
@@ -191,7 +196,7 @@ def test_voice_over_no_valid_segments():
 
 def test_voice_over_multiple_languages():
     """Test voice_over handles multiple languages."""
-    with patch("mindquest.voice.generate_audio_with_chatgpt") as mock_audio:
+    with patch("mindquest.studio.generate_audio_with_chatgpt") as mock_audio:
         mock_audio.return_value = b"audio"
 
         result = voice_over("key", "[Plato]: Hello.\n[Pixel]: Hi!", "en,es,fr")
@@ -201,7 +206,7 @@ def test_voice_over_multiple_languages():
 
 def test_extract_character_audio_valid():
     """Test extracting audio for a specific character."""
-    with patch("mindquest.voice.generate_audio_with_chatgpt") as mock_audio:
+    with patch("mindquest.studio.generate_audio_with_chatgpt") as mock_audio:
         mock_audio.return_value = b"plato_audio"
 
         result = extract_character_audio(
@@ -326,3 +331,58 @@ def test_character_profiles_unique():
     """Test that character profiles are distinct."""
     assert PLATO.name != PIXEL.name
     assert PLATO.voice_persona != PIXEL.voice_persona
+
+
+# Podcast Generation Tests
+def test_generate_podcast_valid_inputs(tmp_path):
+    """Test podcast generation with valid inputs."""
+    output_file = tmp_path / "test.mp3"
+    with patch("mindquest.studio.create_script") as mock_script, patch(
+        "mindquest.studio.voice_over"
+    ) as mock_voice:
+        mock_script.return_value = "[Plato]: Test script"
+        mock_voice.return_value = b"audio_data"
+
+        result = generate_podcast("Test Topic", "test-key", str(output_file), 500)
+
+        assert str(output_file) in result
+        assert mock_script.called
+        assert mock_voice.called
+
+
+def test_generate_podcast_script_error():
+    """Test podcast generation handles script generation errors."""
+    with patch("mindquest.studio.create_script") as mock_script:
+        mock_script.side_effect = ValueError("Script error")
+
+        with pytest.raises(RuntimeError, match="Script generation failed"):
+            generate_podcast("Topic", "key")
+
+
+def test_generate_podcast_audio_error():
+    """Test podcast generation handles audio generation errors."""
+    with patch("mindquest.studio.create_script") as mock_script, patch(
+        "mindquest.studio.voice_over"
+    ) as mock_voice:
+        mock_script.return_value = "[Plato]: Script"
+        mock_voice.side_effect = RuntimeError("Audio error")
+
+        with pytest.raises(RuntimeError, match="Audio generation failed"):
+            generate_podcast("Topic", "key")
+
+
+def test_generate_podcast_word_count():
+    """Test podcast generation with custom word count."""
+    with patch("mindquest.studio.create_script") as mock_script, patch(
+        "mindquest.studio.voice_over"
+    ) as mock_voice:
+        mock_script.return_value = "[Plato]: Script"
+        mock_voice.return_value = b"audio"
+
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+            generate_podcast("Topic", "key", tmp.name, 1000)
+            mock_script.assert_called_once()
+            # Check that word_count was passed
+            assert mock_script.call_args[1]["number_of_words"] == 1000

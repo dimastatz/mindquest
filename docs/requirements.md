@@ -80,4 +80,5 @@ The task is considered complete only when the automated test script executes wit
 * **Command:** `run.sh -local`
 * **Condition:** The script must generate a valid script and a valid audio file based on the input topic.
 * **Run.sh**: you cannot change the script run.sh. 
-* **Testing:**: perform testing with pytest and keep all in one file
+* **Testing:**: perform testing with pytest and keep all in one file. Do not create classes in test. It should be pure functions only.
+

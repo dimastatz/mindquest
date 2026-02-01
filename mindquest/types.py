@@ -16,7 +16,7 @@ class CharacterProfile:
 PLATO = CharacterProfile(
     name="Plato",
     voice_persona="Wise Professor",
-./    speech_characteristics=(
+    speech_characteristics=(
         "Slow, deliberate, explanatory, and calm. Uses sophisticated language "
         "but explains complex concepts in child-friendly terms."
     ),

@@ -1,6 +1,6 @@
 <div align="center">
 <h1 align="center">🎙️ MindQuest</h1> 
-<h3>Automated AI-Powered Educational Podcast Studio for Kids (Ages 8–12)</h3>
+<h3>Automated AI-Powered Educational Content Studio for Kids (Ages 8–12)</h3>
 <img src="https://img.shields.io/badge/Status-Active-green"> <img src="https://img.shields.io/badge/Coverage-95.04%25-brightgreen"> <img src="https://img.shields.io/badge/Pylint-9.93%2F10-brightgreen">
 <br><br>
 <kbd>

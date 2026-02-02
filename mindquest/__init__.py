@@ -10,6 +10,7 @@ from mindquest.studio import (
     parse_script_segments,
     extract_character_audio,
     generate_podcast,
+    create_minibook,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "parse_script_segments",
     "extract_character_audio",
     "generate_podcast",
+    "create_minibook",
 ]

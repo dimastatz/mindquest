@@ -1,7 +1,7 @@
 <div align="center">
 <h1 align="center">🎙️ MindQuest</h1> 
 <h3>Automated AI-Powered Educational Podcast Studio for Kids (Ages 8–12)</h3>
-<img src="https://img.shields.io/badge/Status-Active-green"> <img src="https://img.shields.io/badge/Coverage-95.92%25-brightgreen"> <img src="https://img.shields.io/badge/Pylint-10.0%2F10-brightgreen">
+<img src="https://img.shields.io/badge/Status-Active-green"> <img src="https://img.shields.io/badge/Coverage-95.04%25-brightgreen"> <img src="https://img.shields.io/badge/Pylint-9.93%2F10-brightgreen">
 <br><br>
 <kbd>
 <img src="./docs/imgs/mindquest.png" width="256px"> 
@@ -12,16 +12,17 @@
 
 ## Overview
 
-**MindQuest** is a Python-based podcast production studio that automatically generates engaging, educational podcasts for children aged 8–12. It combines:
+**MindQuest** is a Python-based AI platform that automatically generates engaging, educational content for children aged 8–12. It combines:
 
 - **Educational Content** from WikiKids (age-appropriate information)
 - **AI Script Generation** using ChatGPT-4 to create engaging dialogues
-- **Natural Voice Synthesis** using OpenAI's TTS API
+- **Podcast Production** with natural voice synthesis via OpenAI's TTS API
+- **Mini-Book Generation** in EPUB/PDF formats with structured chapters
 - **Character-Based Storytelling** featuring two distinct personalities:
   - **Plato**: A wise, calm professor who explains concepts
   - **Pixel**: A curious, energetic 10-year-old asking questions
 
-The entire system is built with **pure functional programming**, comprehensive testing, and production-grade code quality.
+The entire system is built with **pure functional programming**, comprehensive testing (95%+ coverage), and production-grade code quality.
 
 ---
 
@@ -46,7 +47,7 @@ pip install -r requirements.txt
 
 ```python
 import os
-from mindquest import generate_podcast
+from mindquest import generate_podcast, create_minibook
 
 api_key = os.getenv("OPENAI_API_KEY")
 
@@ -58,9 +59,19 @@ generate_podcast(
     word_count=700,
     languages="en"
 )
+
+# OR generate an educational mini-book (EPUB format)
+ebook_path = create_minibook(
+    api_key=api_key,
+    topic="Solar System",
+    language="en",
+    output_format="epub"
+)
 ```
 
-**Result:** A professional 2.5 MB MP3 podcast ready to listen!
+**Results:** 
+- Podcast: A professional 2.5 MB MP3 file ready to listen
+- Mini-Book: An EPUB file with chapters and assessment questions
 
 ### Generate in Different Languages
 
@@ -68,11 +79,14 @@ generate_podcast(
 # Hebrew podcast about Drones
 generate_podcast("Drones", api_key, "podcast_he.mp3", languages="he")
 
-# Spanish podcast about Ancient Egypt
-generate_podcast("Ancient Egypt", api_key, "podcast_es.mp3", languages="es")
+# Spanish mini-book about Ancient Egypt
+create_minibook(api_key, "Ancient Egypt", language="es", output_format="epub")
 
-# Multilingual (English, Spanish, French)
-generate_podcast("Dinosaurs", api_key, languages="en,es,fr")
+# French podcast about Dinosaurs
+generate_podcast("Dinosaurs", api_key, "podcast_fr.mp3", languages="fr")
+
+# Multilingual podcast (English, Spanish, French)
+generate_podcast("Space Exploration", api_key, languages="en,es,fr")
 ```
 
 ---
@@ -84,16 +98,21 @@ generate_podcast("Dinosaurs", api_key, languages="en,es,fr")
 **[mindquest/studio.py](mindquest/studio.py)** - Main production engine with:
 
 ```python
-create_script()           # Generate educational scripts from WikiKids
-parse_script_segments()   # Extract character dialogues
-voice_over()              # Synthesize audio from scripts
-extract_character_audio() # Generate audio for specific characters
-generate_podcast()        # Complete end-to-end podcast production
+create_script()             # Generate educational scripts from WikiKids
+parse_script_segments()     # Extract character dialogues
+voice_over()                # Synthesize audio from scripts
+extract_character_audio()   # Generate audio for specific characters
+generate_podcast()          # Complete end-to-end podcast production
+create_minibook()           # Generate EPUB/PDF mini-books with chapters
+_parse_minibook_markdown()  # Parse markdown into structured chapters
+_create_epub_file()         # Generate EPUB files
+_create_pdf_file()          # Generate PDF files
 ```
 
 **[mindquest/utils/chatgpt.py](mindquest/utils/chatgpt.py)** - OpenAI integration:
 - Script generation via ChatGPT-4
 - Audio synthesis via OpenAI TTS API
+- Mini-book content generation via ChatGPT-4
 
 **[mindquest/utils/wikikids.py](mindquest/utils/wikikids.py)** - Content sourcing:
 - WikiKids API integration for age-appropriate facts
@@ -151,15 +170,42 @@ voice_over(
 ) -> bytes
 ```
 
+### `create_minibook()`
+
+Generate an educational mini-book in EPUB or PDF format.
+
+```python
+create_minibook(
+    api_key: str,                    # OpenAI API key
+    topic: str,                      # Educational topic
+    language: str = "en",            # Language code (e.g., "he", "es", "fr")
+    number_of_words: int = 2000,     # Target word count
+    output_format: str = "epub"      # Format: "epub" or "pdf"
+) -> str                             # Returns path to generated file
+```
+
+**Example:**
+```python
+# Generate Hebrew EPUB about FPV Drones
+file_path = create_minibook(
+    api_key=api_key,
+    topic="FPV Drones",
+    language="he",
+    output_format="epub"
+)
+print(f"Mini-book saved to: {file_path}")  # fpv_drones_he.epub
+```
+
 ---
 
 ## Quality Metrics
 
-✅ **Test Coverage:** 95.92% (37 comprehensive tests)  
-✅ **Code Quality:** 10.00/10 Pylint score  
+✅ **Test Coverage:** 95.04% (57 comprehensive tests)  
+✅ **Code Quality:** 9.93/10 Pylint score  
 ✅ **Testing Framework:** pytest with pure function tests  
 ✅ **Type Hints:** Full type annotation coverage  
-✅ **Error Handling:** Comprehensive exception handling with descriptive messages
+✅ **Error Handling:** Comprehensive exception handling with descriptive messages  
+✅ **Pure Functions:** 90%+ pure functional code (no side effects)
 
 ### Running Tests
 
@@ -224,6 +270,36 @@ generate_podcast(
 )
 ```
 
+### Workflow 4: Generate Multi-Format Educational Content
+
+```python
+from mindquest import generate_podcast, create_minibook
+import os
+
+api_key = os.getenv("OPENAI_API_KEY")
+topic = "The Water Cycle"
+language = "es"  # Spanish
+
+# Generate podcast for listening
+podcast_path = generate_podcast(
+    topic=topic,
+    api_key=api_key,
+    output_file="water_cycle_podcast.mp3",
+    languages=language
+)
+
+# Generate mini-book for reading
+ebook_path = create_minibook(
+    api_key=api_key,
+    topic=topic,
+    language=language,
+    output_format="epub"
+)
+
+print(f"Podcast: {podcast_path}")
+print(f"E-Book: {ebook_path}")
+```
+
 ---
 
 ## Technology Stack
@@ -236,6 +312,7 @@ generate_podcast(
 | **Content** | WikiKids |
 | **Testing** | pytest, pytest-cov |
 | **Code Quality** | pylint, black, type hints |
+| **E-Book Format** | ebooklib, EPUB/PDF |
 | **Package Manager** | pip |
 
 ---
@@ -270,6 +347,8 @@ README.md                   # This file
 - **openai** ≥1.0.0 - OpenAI API client
 - **requests** ≥2.31.0 - HTTP library for WikiKids
 - **beautifulsoup4** ≥4.12.0 - HTML parsing for content extraction
+- **ebooklib** ≥0.18 - EPUB file generation
+- **pypub** ≥1.1.0 - Additional EPUB support
 - **pytest** ≥7.4.0 - Testing framework
 - **pytest-cov** ≥4.1.0 - Coverage reporting
 - **black** - Code formatting
@@ -299,10 +378,22 @@ python -c "from mindquest import generate_podcast; print('✅ MindQuest ready!')
 
 ## Features
 
-✨ **Automatic Podcast Generation**
-- End-to-end pipeline from topic to MP3
+✨ **Automatic Content Generation**
+- End-to-end pipeline from topic to podcast MP3 or e-book
 - No manual script writing required
 - Real-time progress feedback
+
+🎙️ **Podcast Production**
+- Character-based dialogue generation
+- Natural voice synthesis with distinct voices
+- Multi-segment audio composition
+- Export to MP3 format
+
+📖 **Mini-Book Generation**
+- Structured chapters (7-10 per book)
+- Assessment questions (3 per chapter)
+- EPUB and PDF format support
+- Table of contents with chapter organization
 
 🎭 **Character-Based Learning**
 - Two distinct characters with different personalities
@@ -311,19 +402,20 @@ python -c "from mindquest import generate_podcast; print('✅ MindQuest ready!')
 
 🌍 **Multilingual Support**
 - English, Spanish, French, German, Hebrew, Arabic, and more
-- Language parameter for voice synthesis
-- Compatible with OpenAI's TTS language support
+- Language parameter for both podcasts and mini-books
+- Compatible with OpenAI's TTS and GPT language support
 
 📚 **Educational Content**
 - WikiKids integration for age-appropriate information
 - Factual, verified content sources
-- Context-aware script generation
+- Context-aware script and mini-book generation
 
 🔧 **Production-Grade Quality**
-- 95%+ test coverage
-- 10.0/10 code quality score
+- 95%+ test coverage (57 tests)
+- 9.93/10 code quality score
 - Full error handling and validation
 - Type hints throughout codebase
+- Pure functional programming paradigm
 
 ---
 

@@ -41,7 +41,9 @@ def generate_script_with_chatgpt(
         }
         lang_name = language_names.get(language, language.upper())
 
-        prompt = f"""Generate a podcast script in {lang_name} for children aged 8-12 about "{topic}".
+        topic_str = topic
+        prompt = f"""Generate a podcast script in {lang_name} for children \
+aged 8-12 about "{topic_str}".
 
 The script should feature two characters:
 - Plato: A wise, old professor who explains concepts
@@ -113,4 +115,94 @@ def generate_audio_with_chatgpt(
     except Exception as exception:
         raise RuntimeError(
             f"Failed to generate audio with OpenAI TTS: {str(exception)}"
+        ) from exception
+
+
+def generate_minibook_with_chatgpt(
+    topic: str, context: str, api_key: str, language: str = "en"
+) -> str:
+    """
+    Generate a mini-book using ChatGPT.
+
+    Args:
+        topic: The educational topic for the mini-book.
+        context: Background information from WikiKids.
+        api_key: OpenAI API key.
+        language: Language code for mini-book generation (default: "en").
+
+    Returns:
+        A structured mini-book markdown content with chapters and questions.
+
+    Raises:
+        RuntimeError: If API call fails.
+    """
+    try:
+        client = OpenAI(api_key=api_key)
+
+        # Language names mapping
+        language_names = {
+            "en": "English",
+            "es": "Spanish",
+            "fr": "French",
+            "de": "German",
+            "it": "Italian",
+            "pt": "Portuguese",
+            "ru": "Russian",
+            "ja": "Japanese",
+            "zh": "Chinese",
+            "ar": "Arabic",
+            "he": "Hebrew",
+            "hi": "Hindi",
+        }
+        lang_name = language_names.get(language, language.upper())
+
+        topic_str = topic
+        prompt = f"""Generate a comprehensive mini-book in {lang_name} for \
+children aged 8-12 about "{topic_str}".
+
+The mini-book should:
+1. Start with a Table of Contents
+2. Include 8-10 chapters (each 200-300 words)
+3. Each chapter should have:
+   - Clear, engaging title
+   - Educational content explained simply
+   - 3 knowledge assessment questions at the end
+4. Use simple, age-appropriate language
+5. Make it engaging and easy to read
+6. Format with markdown headers (# for title, ## for chapters, ### for sections)
+
+Use this context:
+{context}
+
+Write the entire mini-book in {lang_name}.
+
+Format:
+# Title: {topic}
+
+## Table of Contents
+1. Chapter 1: ...
+2. Chapter 2: ...
+...
+
+## Chapter 1: [Title]
+[Content]
+
+### Knowledge Assessment Questions:
+1. [Question]
+2. [Question]
+3. [Question]
+
+[Continue for all chapters]"""
+
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=4000,
+        )
+
+        return response.choices[0].message.content
+    except Exception as exception:
+        raise RuntimeError(
+            f"Failed to generate mini-book with ChatGPT: {str(exception)}"
         ) from exception

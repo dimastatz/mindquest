@@ -11,7 +11,19 @@
 
 ### 2.1 Core Functionality
 
-The system must expose two primary pure functions to handle script generation and audio synthesis.
+The system must expose three primary pure functions to handle script generation and audio synthesis.
+
+#### Function: `create_minibook`
+
+* **Signature:** `create_minibook(api_key: str, topic: str, language='en', number_of_words = 2000, format='ebup') -> str`
+* **Workflow:**
+1. Accept a topic string.
+2. Search **WikiKids** to gather factual, age-appropriate information.
+3. Utilize **ChatGPT LLM** to synthesize the gathered data into a mini book
+4. Make it accessible to 8-12 y.o. Engaging and easy to read.
+5. Organize the content into 7–10 chapters, with three knowledge assessment questions following each chapter. Add Table of content in the beginning and a mind map picture.
+6. Support two book formats, ebup and pdf.
+
 
 #### Function: `create_script`
 
@@ -30,7 +42,7 @@ The system must expose two primary pure functions to handle script generation an
 
 #### Function: `voice_over`
 
-* **Signature:** `voice_over(api_key: str, script: str, languages: str) -> bytes`
+* **Signature:** `voice_over(api_key: str, script: str, language: str='en') -> bytes`
 * **Workflow:**
 1. Parse the input script to identify speaker segments.
 2. Generate Text-to-Speech (TTS) audio using **Google Gemini Multimodal** capabilities.

@@ -4,7 +4,7 @@
 <img src="https://img.shields.io/badge/Status-Active-green"> <img src="https://img.shields.io/badge/Coverage-95.04%25-brightgreen"> <img src="https://img.shields.io/badge/Pylint-9.93%2F10-brightgreen">
 <br><br>
 <kbd>
-<img src="./docs/imgs/mindquest.png" width="256px"> 
+<img src="https://github.com/dimastatz/mindquest/blob/main/docs/imgs/mindquest.png?raw=true" width="256px"> 
 </kbd>
 </div>
 

@@ -1,5 +1,6 @@
 """ChatGPT API integration for script and audio generation."""
 
+import requests
 from openai import OpenAI
 
 
@@ -84,7 +85,11 @@ def generate_audio_with_chatgpt(
 
 
 def generate_minibook_with_chatgpt(
-    topic: str, context: str, api_key: str, language: str = "en"
+    topic: str,
+    context: str,
+    api_key: str,
+    language: str = "en",
+    number_of_chapters: int = 7,
 ) -> str:
     """
     Generate a mini-book using ChatGPT.
@@ -93,13 +98,13 @@ def generate_minibook_with_chatgpt(
         client = OpenAI(api_key=api_key)
 
         prompt = (
-            f"Generate a mini-book in language code {language} for "
+            f"Generate a comprehensive mini-book in language code {language} for "
             f"children aged 8-12 about '{topic}'.\n\n"
             "The mini-book must:\n"
             "1. Start with a Table of Contents.\n"
-            "2. Include 7-10 chapters.\n"
-            "3. Each chapter should be around 250-300 words.\n"
-            "4. Each chapter must conclude with 3 questions.\n"
+            f"2. Include {number_of_chapters} chapters.\n"
+            "3. Each chapter should be around 200-300 words.\n"
+            "4. Each chapter must conclude with 3 knowledge assessment questions.\n"
             "5. Include a section for a 'Mind Map' placeholder.\n"
             "6. Format with markdown headers (# for title, ## for chapters).\n\n"
             "Use this context from WikiKids:\n"
@@ -118,4 +123,48 @@ def generate_minibook_with_chatgpt(
     except Exception as exception:
         raise RuntimeError(
             f"Failed to generate mini-book with ChatGPT: {str(exception)}"
+        ) from exception
+
+
+def generate_cover_image_with_dalle(topic: str, api_key: str) -> bytes:
+    """
+    Generate a Pixar-style cover image using DALL-E 3.
+
+    Args:
+        topic: The topic of the book.
+        api_key: OpenAI API key.
+
+    Returns:
+        Image bytes.
+    """
+    try:
+        client = OpenAI(api_key=api_key)
+
+        prompt = (
+            f"A cute, vibrant, 3D Pixar-style movie poster illustration for a "
+            f"children's educational book about '{topic}'. "
+            "Colorful, engaging, high quality, suitable for 8-12 year olds."
+        )
+
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+        )
+
+        image_url = response.data[0].url
+        if not image_url:
+            raise RuntimeError("No image URL returned from DALL-E")
+
+        # Download the image
+        image_response = requests.get(image_url, timeout=30)
+        image_response.raise_for_status()
+
+        return image_response.content
+
+    except Exception as exception:
+        raise RuntimeError(
+            f"Failed to generate cover image with DALL-E: {str(exception)}"
         ) from exception

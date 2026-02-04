@@ -18,6 +18,7 @@ from mindquest.utils.chatgpt import (
     generate_script_with_chatgpt,
     generate_audio_with_chatgpt,
     generate_minibook_with_chatgpt,
+    generate_cover_image_with_dalle,
 )
 from mindquest.utils.wikikids import search_wikikids, get_wikikids_summary
 from mindquest.types import CharacterProfile, PLATO, PIXEL
@@ -146,6 +147,45 @@ def test_generate_minibook_error():
             generate_minibook_with_chatgpt("Topic", "Context", "key")
 
 
+def test_generate_cover_image_with_dalle():
+    """Test DALL-E cover image generation."""
+    with patch("mindquest.utils.chatgpt.OpenAI") as mock_openai, patch(
+        "mindquest.utils.chatgpt.requests.get"
+    ) as mock_get:
+        mock_client = MagicMock()
+        mock_openai.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.data = [MagicMock(url="http://image.url")]
+        mock_client.images.generate.return_value = mock_response
+
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.content = b"image_bytes"
+
+        result = generate_cover_image_with_dalle("Topic", "key")
+        assert result == b"image_bytes"
+
+
+def test_generate_cover_image_no_url():
+    """Test DALL-E generation with no URL returned."""
+    with patch("mindquest.utils.chatgpt.OpenAI") as mock_openai:
+        mock_client = MagicMock()
+        mock_openai.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.data = [MagicMock(url=None)]
+        mock_client.images.generate.return_value = mock_response
+
+        with pytest.raises(RuntimeError, match="No image URL"):
+            generate_cover_image_with_dalle("Topic", "key")
+
+
+def test_generate_cover_image_error():
+    """Test DALL-E generation error handling."""
+    with patch("mindquest.utils.chatgpt.OpenAI") as mock_openai:
+        mock_openai.return_value.images.generate.side_effect = Exception("API Error")
+        with pytest.raises(RuntimeError, match="Failed to generate cover image"):
+            generate_cover_image_with_dalle("Topic", "key")
+
+
 # ============================================================================
 # Voice Synthesis Tests
 # ============================================================================
@@ -213,16 +253,19 @@ def test_create_minibook_valid_inputs():
     ) as mock_search, patch(
         "mindquest.studio.generate_minibook_with_chatgpt"
     ) as mock_generate, patch(
+        "mindquest.studio.generate_cover_image_with_dalle"
+    ) as mock_cover, patch(
         "mindquest.studio.epub.write_epub"
     ):
         mock_summary.return_value = "Topic summary"
         mock_search.return_value = "Search results"
         mock_generate.return_value = "# Mini-book\n## Chapter 1\nContent..."
+        mock_cover.return_value = b"image_data"
 
         result = create_minibook("key", "Test Topic")
 
         assert isinstance(result, str)
-        assert ".ebup" in result
+        assert ".epub" in result
 
 
 def test_create_minibook_with_parameters():
@@ -232,16 +275,20 @@ def test_create_minibook_with_parameters():
     ) as mock_search, patch(
         "mindquest.studio.generate_minibook_with_chatgpt"
     ) as mock_generate, patch(
+        "mindquest.studio.generate_cover_image_with_dalle"
+    ) as mock_cover, patch(
         "mindquest.studio.epub.write_epub"
     ):
         mock_summary.return_value = "Summary"
         mock_search.return_value = "Results"
         mock_generate.return_value = "# Book\n## Chap 1\nContent"
+        mock_cover.return_value = b"image_data"
 
         create_minibook(
-            "key", "Topic", language="he", number_of_words=3000, format="ebup"
+            "key", "Topic", language="he", number_of_chapters=5, format="ebup"
         )
         assert mock_generate.called
+        assert mock_generate.call_args[0][4] == 5  # Check number_of_chapters passed
 
 
 def test_create_minibook_pdf_format():
@@ -251,11 +298,14 @@ def test_create_minibook_pdf_format():
     ) as mock_search, patch(
         "mindquest.studio.generate_minibook_with_chatgpt"
     ) as mock_generate, patch(
+        "mindquest.studio.generate_cover_image_with_dalle"
+    ) as mock_cover, patch(
         "builtins.open", create=True
     ) as mock_open:
         mock_summary.return_value = "Summary"
         mock_search.return_value = "Results"
         mock_generate.return_value = "# Book\n## Chap 1\nContent"
+        mock_cover.return_value = b"image_data"
 
         result = create_minibook("key", "Topic", format="pdf")
         assert isinstance(result, str)
@@ -275,6 +325,23 @@ def test_create_minibook_errors():
         create_minibook("", "Topic")
     with pytest.raises(ValueError, match="Topic must be a non-empty string"):
         create_minibook("key", "")
+
+
+def test_create_minibook_cover_error():
+    """Test mini-book creation survives cover generation error."""
+    with patch("mindquest.studio.get_wikikids_summary"), patch(
+        "mindquest.studio.search_wikikids"
+    ), patch("mindquest.studio.generate_minibook_with_chatgpt") as mock_gen, patch(
+        "mindquest.studio.generate_cover_image_with_dalle"
+    ) as mock_cover, patch(
+        "mindquest.studio.epub.write_epub"
+    ):
+        mock_gen.return_value = "# Book\n## Ch1\nTxt"
+        mock_cover.side_effect = RuntimeError("DALL-E Failed")
+
+        # Should still succeed without cover
+        result = create_minibook("key", "Topic")
+        assert isinstance(result, str)
 
 
 # ============================================================================

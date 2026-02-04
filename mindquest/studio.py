@@ -17,6 +17,7 @@ from mindquest.utils.chatgpt import (
     generate_script_with_chatgpt,
     generate_audio_with_chatgpt,
     generate_minibook_with_chatgpt,
+    generate_cover_image_with_dalle,
 )
 
 
@@ -90,8 +91,8 @@ def parse_script_segments(script: str) -> List[Tuple[str, str]]:
     Returns:
         A list of tuples (character_name, dialogue).
     """
-    # Pattern to match [Character] Speaker: dialogue
-    pattern = r"\[(\w+)\]\s*[:\-]?\s*(.+?)(?=\[|$)"
+    # Pattern to match [Character]: dialogue
+    pattern = r"\[(\w+)\]:\s*(.+?)(?=\[|$)"
     matches = re.findall(pattern, script, re.DOTALL)
 
     segments = []
@@ -163,7 +164,10 @@ def voice_over(api_key: str, script: str, language: str = "en") -> bytes:
 
 
 def extract_character_audio(
-    script: str, character: str, api_key: str, language: str = "en"
+    script: str,
+    character: str,
+    api_key: str,
+    language: str = "en",
 ) -> bytes:
     """
     Extract and generate audio for a specific character in the script.
@@ -230,7 +234,11 @@ def generate_podcast(
 
 # pylint: disable=redefined-builtin
 def create_minibook(
-    api_key: str, topic: str, language="en", number_of_words=2000, format="ebup"
+    api_key: str,
+    topic: str,
+    language="en",
+    number_of_chapters=7,
+    format="ebup",
 ) -> str:
     """
     Generate an educational mini-book for children aged 8-12.
@@ -238,14 +246,16 @@ def create_minibook(
     This function:
     1. Searches WikiKids for age-appropriate information about the topic
     2. Uses ChatGPT-4 LLM to synthesize the data into a structured mini-book
-    3. Organizes content into 7-10 chapters with assessment questions
-    4. Supports ebup and pdf formats
+    3. Organizes content into chapters (each 200-300 words) with assessment questions
+    4. Includes table of contents and mind map visualization
+    5. Adds a Pixar-style cover image
+    6. Supports ebup and pdf formats
 
     Args:
         api_key: OpenAI API key.
         topic: The educational topic for the mini-book.
         language: Language code (default: 'en').
-        number_of_words: Total target word count (default: 2000).
+        number_of_chapters: Number of chapters (default: 7).
         format: Output format - 'ebup' or 'pdf' (default: 'ebup').
 
     Returns:
@@ -273,23 +283,35 @@ Summary:
 Search Results:
 {search_results}
 
-Target Word Count: {number_of_words}
-Chapters: 7-10
+Target Chapters: {number_of_chapters}
+Words per Chapter: 200-300
 Assessment Questions: 3 per chapter
 Include: Table of contents at the beginning, mind map picture placeholder
 Format: Markdown with # for title, ## for chapters
 """
 
-    # Generate mini-book content using ChatGPT
-    minibook_content = generate_minibook_with_chatgpt(topic, context, api_key, language)
+    # Generate mini-book content
+    minibook_content = generate_minibook_with_chatgpt(
+        topic, context, api_key, language, number_of_chapters
+    )
+
+    # Generate cover image
+    try:
+        print("🎨 Generating cover image...")
+        cover_image_bytes = generate_cover_image_with_dalle(topic, api_key)
+    except Exception as exc:
+        print(f"⚠️ Failed to generate cover image: {exc}")
+        cover_image_bytes = None
 
     # Validate and enhance
     validated_content = _validate_minibook_structure(minibook_content)
 
     # Create output file
     if format == "ebup":
-        # Requirement specified 'ebup', but file extension should be 'epub'
-        return _create_epub_file(topic, validated_content, language, "epub")
+        # Requirement typo 'ebup' implies 'epub' extension
+        return _create_epub_file(
+            topic, validated_content, language, "epub", cover_image_bytes
+        )
     if format == "pdf":
         return _create_pdf_file(topic, validated_content, language)
 
@@ -348,7 +370,13 @@ def _parse_minibook_markdown(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     return title, chapters
 
 
-def _create_epub_file(title: str, content: str, language: str, extension="epub") -> str:
+def _create_epub_file(
+    title: str,
+    content: str,
+    language: str,
+    extension="epub",
+    cover_image: bytes = None,
+) -> str:
     """
     Create an EPUB file.
     """
@@ -362,6 +390,9 @@ def _create_epub_file(title: str, content: str, language: str, extension="epub")
         book.set_title(book_title or title)
         book.set_language(language)
         book.add_author("MindQuest")
+
+        if cover_image:
+            book.set_cover("cover.jpg", cover_image)
 
         epub_chapters = []
         for chapter_title, chapter_content in chapters:

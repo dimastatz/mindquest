@@ -17,51 +17,29 @@ def generate_script_with_chatgpt(
 
     Returns:
         A conversational podcast script with [Plato] and [Pixel] characters.
-
-    Raises:
-        RuntimeError: If API call fails.
     """
     try:
         client = OpenAI(api_key=api_key)
 
-        # Language names mapping for better prompts
-        language_names = {
-            "en": "English",
-            "es": "Spanish",
-            "fr": "French",
-            "de": "German",
-            "it": "Italian",
-            "pt": "Portuguese",
-            "ru": "Russian",
-            "ja": "Japanese",
-            "zh": "Chinese",
-            "ar": "Arabic",
-            "he": "Hebrew",
-            "hi": "Hindi",
-        }
-        lang_name = language_names.get(language, language.upper())
-
-        topic_str = topic
-        prompt = f"""Generate a podcast script in {lang_name} for children \
-aged 8-12 about "{topic_str}".
-
-The script should feature two characters:
-- Plato: A wise, old professor who explains concepts
-- Pixel: A curious, funny 10-year-old kid who asks questions
-
-Use the following context:
-{context}
-
-Format the script with character names in brackets like [Plato] and [Pixel].
-Make it engaging, educational, and fun for kids.
-Target around 500 words.
-Write the entire script in {lang_name}."""
+        prompt = (
+            f"Generate a podcast script in language code {language} for "
+            f"children aged 8-12 about '{topic}'.\n\n"
+            "The script should feature two characters:\n"
+            "- Plato: A wise, old professor who explains concepts calmly.\n"
+            "- Pixel: A curious, funny kid who asks questions.\n\n"
+            "Use the following context gathered from WikiKids:\n"
+            f"{context}\n\n"
+            "Format the script with character names in brackets like [Plato].\n"
+            "Make it engaging, educational, and fun for kids.\n"
+            "Target around 500 words.\n"
+            f"Ensure the entire script is in language {language}."
+        )
 
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=1000,
+            max_tokens=2000,
         )
 
         return response.choices[0].message.content
@@ -75,42 +53,29 @@ def generate_audio_with_chatgpt(
     script: str,
     character: str,
     api_key: str,
-    language: str = "en",  # pylint: disable=unused-argument
+    language: str = "en",
 ) -> bytes:
     """
     Generate audio bytes using OpenAI TTS API.
-
-    Args:
-        script: The dialogue text to convert to speech.
-        character: The character speaking (Plato or Pixel).
-        api_key: OpenAI API key.
-        language: Language code for speech generation.
-
-    Returns:
-        Audio file as bytes.
-
-    Raises:
-        RuntimeError: If audio generation fails.
     """
     try:
         client = OpenAI(api_key=api_key)
+        _ = language
 
-        # Define voice characteristics based on character
-        voice_config = {
-            "Plato": "onyx",  # Deep, calm voice
-            "Pixel": "shimmer",  # Bright, energetic voice
+        # Map characters to OpenAI TTS voices
+        voice_map = {
+            "Plato": "onyx",
+            "Pixel": "shimmer",
         }
 
-        voice = voice_config.get(character, "shimmer")
+        voice = voice_map.get(character, "nova")
 
-        # Use OpenAI TTS API to generate actual audio
         response = client.audio.speech.create(
             model="tts-1",
             voice=voice,
             input=script,
         )
 
-        # Return the audio bytes directly
         return response.content
     except Exception as exception:
         raise RuntimeError(
@@ -123,76 +88,24 @@ def generate_minibook_with_chatgpt(
 ) -> str:
     """
     Generate a mini-book using ChatGPT.
-
-    Args:
-        topic: The educational topic for the mini-book.
-        context: Background information from WikiKids.
-        api_key: OpenAI API key.
-        language: Language code for mini-book generation (default: "en").
-
-    Returns:
-        A structured mini-book markdown content with chapters and questions.
-
-    Raises:
-        RuntimeError: If API call fails.
     """
     try:
         client = OpenAI(api_key=api_key)
 
-        # Language names mapping
-        language_names = {
-            "en": "English",
-            "es": "Spanish",
-            "fr": "French",
-            "de": "German",
-            "it": "Italian",
-            "pt": "Portuguese",
-            "ru": "Russian",
-            "ja": "Japanese",
-            "zh": "Chinese",
-            "ar": "Arabic",
-            "he": "Hebrew",
-            "hi": "Hindi",
-        }
-        lang_name = language_names.get(language, language.upper())
-
-        topic_str = topic
-        prompt = f"""Generate a comprehensive mini-book in {lang_name} for \
-children aged 8-12 about "{topic_str}".
-
-The mini-book should:
-1. Start with a Table of Contents
-2. Include 8-10 chapters (each 200-300 words)
-3. Each chapter should have:
-   - Clear, engaging title
-   - Educational content explained simply
-   - 3 knowledge assessment questions at the end
-4. Use simple, age-appropriate language
-5. Make it engaging and easy to read
-6. Format with markdown headers (# for title, ## for chapters, ### for sections)
-
-Use this context:
-{context}
-
-Write the entire mini-book in {lang_name}.
-
-Format:
-# Title: {topic}
-
-## Table of Contents
-1. Chapter 1: ...
-2. Chapter 2: ...
-...
-
-## Chapter 1: [Title]
-[Content]
-
-### Knowledge Assessment Questions:
-1. [Question]
-2. [Question]
-3. [Question]
-
-[Continue for all chapters]"""
+        prompt = (
+            f"Generate a mini-book in language code {language} for "
+            f"children aged 8-12 about '{topic}'.\n\n"
+            "The mini-book must:\n"
+            "1. Start with a Table of Contents.\n"
+            "2. Include 7-10 chapters.\n"
+            "3. Each chapter should be around 250-300 words.\n"
+            "4. Each chapter must conclude with 3 questions.\n"
+            "5. Include a section for a 'Mind Map' placeholder.\n"
+            "6. Format with markdown headers (# for title, ## for chapters).\n\n"
+            "Use this context from WikiKids:\n"
+            f"{context}\n\n"
+            f"Write the entire mini-book in language {language}."
+        )
 
         response = client.chat.completions.create(
             model="gpt-4",

@@ -42,7 +42,7 @@ def search_wikikids(query: str, max_results: int = 3) -> str:
             formatted_results.append(f"**{title}**: {snippet}")
 
         return "\n".join(formatted_results)
-    except requests.RequestException as exception:
+    except Exception as exception:  # pylint: disable=broad-except
         return f"Error searching WikiKids: {str(exception)}"
 
 
@@ -81,5 +81,5 @@ def get_wikikids_summary(topic: str) -> str:
             return "No summary found for the topic."
 
         return extract
-    except requests.RequestException as exception:
+    except Exception as exception:  # pylint: disable=broad-except
         return f"Error fetching summary from WikiKids: {str(exception)}"

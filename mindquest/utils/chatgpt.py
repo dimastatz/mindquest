@@ -126,6 +126,70 @@ def generate_minibook_with_chatgpt(
         ) from exception
 
 
+def generate_minibook_outline(
+    topic: str,
+    context: str,
+    api_key: str,
+    language: str = "en",
+    number_of_chapters: int = 7,
+) -> str:
+    """
+    Generate an outline (list of chapters) for the mini-book.
+    """
+    try:
+        client = OpenAI(api_key=api_key)
+        prompt = (
+            f"Create an outline for a children's mini-book about '{topic}' (Language: {language}).\n"
+            f"Generate exactly {number_of_chapters} chapter titles.\n"
+            "Format the output as a simple numbered list (1. Title...).\n"
+            "Do not include any introduction or other text, just the list of chapters.\n\n"
+            f"Context:\n{context}"
+        )
+
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+    except Exception as exception:
+        raise RuntimeError(f"Failed to generate outline: {exception}") from exception
+
+
+def generate_chapter_content(
+    topic: str,
+    chapter_title: str,
+    context: str,
+    api_key: str,
+    language: str = "en",
+) -> str:
+    """
+    Generate content for a specific chapter.
+    """
+    try:
+        client = OpenAI(api_key=api_key)
+        prompt = (
+            f"Write the content for a chapter titled '{chapter_title}' for a book about '{topic}'.\n"
+            f"Target Audience: Children aged 8-12. Language: {language}.\n"
+            "Requirements:\n"
+            "1. Length: 250-350 words (Strictly enforce this).\n"
+            "2. Tone: Educational, engaging, simple.\n"
+            "3. Format: Markdown. Use '##' for the chapter title at the start.\n"
+            "4. End with 3 multiple-choice assessment questions (with answers).\n\n"
+            f"Context:\n{context}"
+        )
+
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=1500,
+        )
+        return response.choices[0].message.content
+    except Exception as exception:
+        raise RuntimeError(f"Failed to generate chapter '{chapter_title}': {exception}") from exception
+
+
 def generate_cover_image_with_dalle(topic: str, api_key: str) -> bytes:
     """
     Generate a Pixar-style cover image using DALL-E 3.
@@ -168,3 +232,34 @@ def generate_cover_image_with_dalle(topic: str, api_key: str) -> bytes:
         raise RuntimeError(
             f"Failed to generate cover image with DALL-E: {str(exception)}"
         ) from exception
+
+
+def generate_mindmap_image_with_dalle(topic: str, api_key: str) -> bytes:
+    """
+    Generate a Mind Map illustration using DALL-E 3.
+    """
+    try:
+        client = OpenAI(api_key=api_key)
+        prompt = (
+            f"A simple, colorful, educational mind map illustration explaining '{topic}' for children. "
+            "Clear branches, icons, and text-like abstract shapes. White background. "
+            "Cartoon style, easy to understand."
+        )
+
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+        )
+        
+        image_url = response.data[0].url
+        if not image_url:
+            raise RuntimeError("No image URL returned")
+
+        image_response = requests.get(image_url, timeout=30)
+        image_response.raise_for_status()
+        return image_response.content
+    except Exception as exc:
+        raise RuntimeError(f"Failed to generate mind map: {exc}") from exc

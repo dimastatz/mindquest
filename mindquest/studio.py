@@ -17,7 +17,10 @@ from mindquest.utils.chatgpt import (
     generate_script_with_chatgpt,
     generate_audio_with_chatgpt,
     generate_minibook_with_chatgpt,
+    generate_minibook_outline,
+    generate_chapter_content,
     generate_cover_image_with_dalle,
+    generate_mindmap_image_with_dalle,
 )
 
 
@@ -243,14 +246,6 @@ def create_minibook(
     """
     Generate an educational mini-book for children aged 8-12.
 
-    This function:
-    1. Searches WikiKids for age-appropriate information about the topic
-    2. Uses ChatGPT-4 LLM to synthesize the data into a structured mini-book
-    3. Organizes content into chapters (each 200-300 words) with assessment questions
-    4. Includes table of contents and mind map visualization
-    5. Adds a Pixar-style cover image
-    6. Supports ebup and pdf formats
-
     Args:
         api_key: OpenAI API key.
         topic: The educational topic for the mini-book.
@@ -271,123 +266,89 @@ def create_minibook(
         raise ValueError("Output format must be 'ebup' or 'pdf'")
 
     topic = topic.strip()
+    print(f"📖 Starting mini-book generation for: {topic}")
 
     # Gather factual information from WikiKids
     summary = get_wikikids_summary(topic)
     search_results = search_wikikids(topic, max_results=5)
 
-    context = f"""
-Summary:
-{summary}
+    context = f"Summary:\n{summary}\n\nSearch Results:\n{search_results}"
 
-Search Results:
-{search_results}
-
-Target Chapters: {number_of_chapters}
-Words per Chapter: 200-300
-Assessment Questions: 3 per chapter
-Include: Table of contents at the beginning, mind map picture placeholder
-Format: Markdown with # for title, ## for chapters
-"""
-
-    # Generate mini-book content
-    minibook_content = generate_minibook_with_chatgpt(
+    # 1. Generate Outline
+    print("📝 Generating outline...")
+    outline_raw = generate_minibook_outline(
         topic, context, api_key, language, number_of_chapters
     )
+    
+    # Parse outline (assuming numbered list)
+    chapter_titles = []
+    for line in outline_raw.split('\n'):
+        # Match "1. Title" or "1 Title"
+        cleaned = re.sub(r'^\d+[\.\)]\s*', '', line).strip()
+        if cleaned:
+            chapter_titles.append(cleaned)
+    
+    # Limit to requested number if model halluncinated more
+    chapter_titles = chapter_titles[:number_of_chapters]
 
-    # Generate cover image
+    # 2. Generate Chapters (Iterative)
+    chapters_data: List[Tuple[str, str]] = []
+    print(f"✍️  Generating {len(chapter_titles)} chapters...")
+    
+    for title in chapter_titles:
+        print(f"   - {title}")
+        content = generate_chapter_content(topic, title, context, api_key, language)
+        # Remove the Title line if the model included it, to avoid duplication
+        # Simple heuristic: remove lines starting with # or ## that contain the title
+        lines = content.split('\n')
+        cleaned_lines = [l for l in lines if not (l.startswith('#') and title.lower() in l.lower())]
+        cleaned_content = '\n'.join(cleaned_lines).strip()
+        chapters_data.append((title, cleaned_content))
+
+    # 3. Generate Images
+    print("🎨 Generating cover image...")
     try:
-        print("🎨 Generating cover image...")
         cover_image_bytes = generate_cover_image_with_dalle(topic, api_key)
     except Exception as exc:
         print(f"⚠️ Failed to generate cover image: {exc}")
         cover_image_bytes = None
 
-    # Validate and enhance
-    validated_content = _validate_minibook_structure(minibook_content)
+    print("🧠 Generating mind map...")
+    try:
+        mind_map_bytes = generate_mindmap_image_with_dalle(topic, api_key)
+    except Exception as exc:
+        print(f"⚠️ Failed to generate mind map: {exc}")
+        mind_map_bytes = None
 
-    # Create output file
+    # 4. Create Output
     if format == "ebup":
-        # Requirement typo 'ebup' implies 'epub' extension
         return _create_epub_file(
-            topic, validated_content, language, "epub", cover_image_bytes
+            topic, chapters_data, language, "epub", cover_image_bytes, mind_map_bytes
         )
     if format == "pdf":
-        return _create_pdf_file(topic, validated_content, language)
+        return _create_pdf_file(topic, chapters_data, language)
 
     raise ValueError("Unsupported output format")
 
 
-def _validate_minibook_structure(content: str) -> str:
-    """
-    Validate and enhance minibook content structure.
-    """
-    if not content or not isinstance(content, str) or content.strip() == "":
-        raise ValueError("Generated content is empty")
-
-    title, chapters = _parse_minibook_markdown(content)
-
-    if not title:
-        raise ValueError("Generated content must have a title (# format)")
-
-    # Build enhanced content
-    enhanced = f"# {title}\n\n"
-    enhanced += "## Table of Contents\n\n"
-    for idx, (chapter_title, _) in enumerate(chapters, 1):
-        enhanced += f"{idx}. {chapter_title}\n"
-    enhanced += "\n---\n\n![Mind Map](mind_map.png)\n\n---\n\n"
-
-    for chapter_title, chapter_content in chapters:
-        enhanced += f"## {chapter_title}\n\n{chapter_content}\n\n"
-
-    return enhanced
-
-
-def _parse_minibook_markdown(content: str) -> Tuple[str, List[Tuple[str, str]]]:
-    """
-    Parse minibook markdown.
-    """
-    lines = content.split("\n")
-    title = ""
-    chapters: List[Tuple[str, str]] = []
-    current_chapter = ""
-    current_content = ""
-
-    for line in lines:
-        if line.startswith("# ") and not title:
-            title = line.replace("# ", "").strip()
-        elif line.startswith("## "):
-            if current_chapter:
-                chapters.append((current_chapter, current_content.strip()))
-            current_chapter = line.replace("## ", "").strip()
-            current_content = ""
-        else:
-            current_content += line + "\n"
-
-    if current_chapter:
-        chapters.append((current_chapter, current_content.strip()))
-
-    return title, chapters
-
-
 def _create_epub_file(
     title: str,
-    content: str,
+    chapters: List[Tuple[str, str]],
     language: str,
     extension="epub",
     cover_image: bytes = None,
+    mind_map_image: bytes = None,
 ) -> str:
     """
-    Create an EPUB file.
+    Create an EPUB file from structured data.
     """
     if epub is None:
         raise RuntimeError("ebooklib is not installed")
 
     try:
-        book_title, chapters = _parse_minibook_markdown(content)
         book = epub.EpubBook()
         book.set_identifier(f"mindquest_{title.lower().replace(' ', '_')}")
-        book.set_title(book_title or title)
+        book.set_title(title)
         book.set_language(language)
         book.add_author("MindQuest")
 
@@ -395,12 +356,39 @@ def _create_epub_file(
             book.set_cover("cover.jpg", cover_image)
 
         epub_chapters = []
-        for chapter_title, chapter_content in chapters:
+        
+        # Add Mind Map as the first "chapter" / Front Matter if it exists
+        if mind_map_image:
+            mm_item = epub.EpubItem(
+                uid="mind_map_img",
+                file_name="images/mind_map.png",
+                media_type="image/png",
+                content=mind_map_image,
+            )
+            book.add_item(mm_item)
+            
+            mm_page = epub.EpubHtml(title="Mind Map", file_name="mind_map.xhtml")
+            mm_page.content = (
+                "<h1>Mind Map</h1>"
+                '<div style="text-align:center;">'
+                '<img src="images/mind_map.png" alt="Mind Map" style="max-width:100%;"/>'
+                "</div>"
+            )
+            book.add_item(mm_page)
+            epub_chapters.append(mm_page)
+
+        # Add Content Chapters
+        for i, (chapter_title, chapter_content) in enumerate(chapters):
             chapter = epub.EpubHtml()
-            chapter.file_name = f"chap_{len(epub_chapters):02d}.xhtml"
+            chapter.file_name = f"chap_{i:02d}.xhtml"
             chapter.title = chapter_title
-            # Move replacement out of f-string for Python < 3.12
+            
+            # Convert basic markdown to HTML
             html_body = chapter_content.replace("\n\n", "</p><p>")
+            # Handle headers
+            html_body = re.sub(r'## (.*)', r'<h2>\1</h2>', html_body)
+            html_body = re.sub(r'\*\*(.*)\*\*', r'<b>\1</b>', html_body)
+            
             chapter.content = f"<h1>{chapter_title}</h1>\n<p>{html_body}</p>"
             book.add_item(chapter)
             epub_chapters.append(chapter)
@@ -418,13 +406,22 @@ def _create_epub_file(
         raise RuntimeError(f"Failed to create EPUB: {exc}") from exc
 
 
-def _create_pdf_file(title: str, content: str, language: str) -> str:
+def _create_pdf_file(
+    title: str, 
+    chapters: List[Tuple[str, str]], 
+    language: str
+) -> str:
     """
-    Create a PDF file.
+    Create a PDF file from structured data.
     """
     try:
         filename = f"{title.lower().replace(' ', '_')}_{language}.pdf"
         output_path = Path(filename)
+        
+        content = f"# {title}\n\n"
+        for chap_title, chap_content in chapters:
+            content += f"## {chap_title}\n\n{chap_content}\n\n"
+            
         with open(output_path, "w", encoding="utf-8") as file:
             file.write(content)
         return str(output_path.absolute())

@@ -9,16 +9,16 @@ from mindquest.studio import (
     extract_character_audio,
     generate_podcast,
     create_minibook,
-    _parse_minibook_markdown,
-    _validate_minibook_structure,
     _create_epub_file,
     _create_pdf_file,
 )
 from mindquest.utils.chatgpt import (
     generate_script_with_chatgpt,
     generate_audio_with_chatgpt,
-    generate_minibook_with_chatgpt,
+    generate_minibook_outline,
+    generate_chapter_content,
     generate_cover_image_with_dalle,
+    generate_mindmap_image_with_dalle,
 )
 from mindquest.utils.wikikids import search_wikikids, get_wikikids_summary
 from mindquest.types import CharacterProfile, PLATO, PIXEL
@@ -123,28 +123,30 @@ def test_generate_audio_error():
             generate_audio_with_chatgpt("Script", "Plato", "key")
 
 
-def test_generate_minibook_with_chatgpt():
-    """Test mini-book generation with ChatGPT."""
+def test_generate_minibook_outline():
+    """Test outline generation."""
     with patch("mindquest.utils.chatgpt.OpenAI") as mock_openai:
         mock_client = MagicMock()
         mock_openai.return_value = mock_client
         mock_response = MagicMock()
-        mock_response.choices[0].message.content = "# Book\n## Chapter 1\nContent"
+        mock_response.choices[0].message.content = "1. Chapter 1"
         mock_client.chat.completions.create.return_value = mock_response
 
-        result = generate_minibook_with_chatgpt("Topic", "Context", "key")
-        assert isinstance(result, str)
-        assert len(result) > 0
+        result = generate_minibook_outline("Topic", "Context", "key")
+        assert result == "1. Chapter 1"
 
 
-def test_generate_minibook_error():
-    """Test mini-book generation error handling."""
+def test_generate_chapter_content():
+    """Test chapter content generation."""
     with patch("mindquest.utils.chatgpt.OpenAI") as mock_openai:
-        mock_openai.return_value.chat.completions.create.side_effect = Exception(
-            "Error"
-        )
-        with pytest.raises(RuntimeError):
-            generate_minibook_with_chatgpt("Topic", "Context", "key")
+        mock_client = MagicMock()
+        mock_openai.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.choices[0].message.content = "Content"
+        mock_client.chat.completions.create.return_value = mock_response
+
+        result = generate_chapter_content("Topic", "Title", "Context", "key")
+        assert result == "Content"
 
 
 def test_generate_cover_image_with_dalle():
@@ -163,6 +165,24 @@ def test_generate_cover_image_with_dalle():
 
         result = generate_cover_image_with_dalle("Topic", "key")
         assert result == b"image_bytes"
+
+
+def test_generate_mindmap_image_with_dalle():
+    """Test DALL-E mind map generation."""
+    with patch("mindquest.utils.chatgpt.OpenAI") as mock_openai, patch(
+        "mindquest.utils.chatgpt.requests.get"
+    ) as mock_get:
+        mock_client = MagicMock()
+        mock_openai.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.data = [MagicMock(url="http://image.url")]
+        mock_client.images.generate.return_value = mock_response
+
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.content = b"mm_bytes"
+
+        result = generate_mindmap_image_with_dalle("Topic", "key")
+        assert result == b"mm_bytes"
 
 
 def test_generate_cover_image_no_url():
@@ -251,61 +271,68 @@ def test_create_minibook_valid_inputs():
     with patch("mindquest.studio.get_wikikids_summary") as mock_summary, patch(
         "mindquest.studio.search_wikikids"
     ) as mock_search, patch(
-        "mindquest.studio.generate_minibook_with_chatgpt"
-    ) as mock_generate, patch(
+        "mindquest.studio.generate_minibook_outline"
+    ) as mock_outline, patch(
+        "mindquest.studio.generate_chapter_content"
+    ) as mock_chapter, patch(
         "mindquest.studio.generate_cover_image_with_dalle"
     ) as mock_cover, patch(
+        "mindquest.studio.generate_mindmap_image_with_dalle"
+    ) as mock_mindmap, patch(
         "mindquest.studio.epub.write_epub"
     ):
         mock_summary.return_value = "Topic summary"
         mock_search.return_value = "Search results"
-        mock_generate.return_value = "# Mini-book\n## Chapter 1\nContent..."
+        mock_outline.return_value = "1. Chapter 1\n2. Chapter 2"
+        mock_chapter.return_value = "## Chapter Title\nContent..."
         mock_cover.return_value = b"image_data"
+        mock_mindmap.return_value = b"mindmap_data"
 
         result = create_minibook("key", "Test Topic")
 
         assert isinstance(result, str)
         assert ".epub" in result
+        assert mock_chapter.call_count == 2
 
 
 def test_create_minibook_with_parameters():
     """Test mini-book creation with custom parameters."""
-    with patch("mindquest.studio.get_wikikids_summary") as mock_summary, patch(
+    with patch("mindquest.studio.get_wikikids_summary"), patch(
         "mindquest.studio.search_wikikids"
-    ) as mock_search, patch(
-        "mindquest.studio.generate_minibook_with_chatgpt"
-    ) as mock_generate, patch(
+    ), patch("mindquest.studio.generate_minibook_outline") as mock_outline, patch(
+        "mindquest.studio.generate_chapter_content"
+    ) as mock_chapter, patch(
         "mindquest.studio.generate_cover_image_with_dalle"
-    ) as mock_cover, patch(
+    ), patch(
+        "mindquest.studio.generate_mindmap_image_with_dalle"
+    ), patch(
         "mindquest.studio.epub.write_epub"
     ):
-        mock_summary.return_value = "Summary"
-        mock_search.return_value = "Results"
-        mock_generate.return_value = "# Book\n## Chap 1\nContent"
-        mock_cover.return_value = b"image_data"
+        mock_outline.return_value = "1. Ch1"
+        mock_chapter.return_value = "Content"
 
         create_minibook(
             "key", "Topic", language="he", number_of_chapters=5, format="ebup"
         )
-        assert mock_generate.called
-        assert mock_generate.call_args[0][4] == 5  # Check number_of_chapters passed
+        assert mock_outline.called
+        assert mock_outline.call_args[0][4] == 5  # Check number_of_chapters passed
 
 
 def test_create_minibook_pdf_format():
     """Test mini-book creation with pdf format."""
-    with patch("mindquest.studio.get_wikikids_summary") as mock_summary, patch(
+    with patch("mindquest.studio.get_wikikids_summary"), patch(
         "mindquest.studio.search_wikikids"
-    ) as mock_search, patch(
-        "mindquest.studio.generate_minibook_with_chatgpt"
-    ) as mock_generate, patch(
+    ), patch("mindquest.studio.generate_minibook_outline") as mock_outline, patch(
+        "mindquest.studio.generate_chapter_content"
+    ) as mock_chapter, patch(
         "mindquest.studio.generate_cover_image_with_dalle"
-    ) as mock_cover, patch(
+    ), patch(
+        "mindquest.studio.generate_mindmap_image_with_dalle"
+    ), patch(
         "builtins.open", create=True
     ) as mock_open:
-        mock_summary.return_value = "Summary"
-        mock_search.return_value = "Results"
-        mock_generate.return_value = "# Book\n## Chap 1\nContent"
-        mock_cover.return_value = b"image_data"
+        mock_outline.return_value = "1. Ch1"
+        mock_chapter.return_value = "Content"
 
         result = create_minibook("key", "Topic", format="pdf")
         assert isinstance(result, str)
@@ -327,19 +354,25 @@ def test_create_minibook_errors():
         create_minibook("key", "")
 
 
-def test_create_minibook_cover_error():
-    """Test mini-book creation survives cover generation error."""
+def test_create_minibook_image_error_tolerance():
+    """Test mini-book creation survives image generation errors."""
     with patch("mindquest.studio.get_wikikids_summary"), patch(
         "mindquest.studio.search_wikikids"
-    ), patch("mindquest.studio.generate_minibook_with_chatgpt") as mock_gen, patch(
+    ), patch("mindquest.studio.generate_minibook_outline") as mock_outline, patch(
+        "mindquest.studio.generate_chapter_content"
+    ) as mock_chapter, patch(
         "mindquest.studio.generate_cover_image_with_dalle"
     ) as mock_cover, patch(
+        "mindquest.studio.generate_mindmap_image_with_dalle"
+    ) as mock_mindmap, patch(
         "mindquest.studio.epub.write_epub"
     ):
-        mock_gen.return_value = "# Book\n## Ch1\nTxt"
-        mock_cover.side_effect = RuntimeError("DALL-E Failed")
+        mock_outline.return_value = "1. Ch1"
+        mock_chapter.return_value = "Content"
+        mock_cover.side_effect = RuntimeError("Cover Error")
+        mock_mindmap.side_effect = RuntimeError("Mindmap Error")
 
-        # Should still succeed without cover
+        # Should still succeed
         result = create_minibook("key", "Topic")
         assert isinstance(result, str)
 
@@ -487,29 +520,12 @@ def test_generate_podcast_errors():
             generate_podcast("Topic", "key")
 
 
-def test_parse_minibook_markdown():
-    """Test minibook markdown parsing."""
-    content = "# Title\n## Chapter 1\nContent 1\n## Chapter 2\nContent 2"
-    title, chapters = _parse_minibook_markdown(content)
-    assert title == "Title"
-    assert len(chapters) == 2
-    assert chapters[0] == ("Chapter 1", "Content 1")
-
-
-def test_validate_minibook_structure():
-    """Test _validate_minibook_structure edge cases."""
-    with pytest.raises(ValueError, match="Generated content is empty"):
-        _validate_minibook_structure("")
-    with pytest.raises(ValueError, match="must have a title"):
-        _validate_minibook_structure("## Chapter 1")
-
-
 def test_create_epub_file_error():
     """Test EPUB creation error handling."""
     with patch("mindquest.studio.epub.EpubBook") as mock_book:
         mock_book.side_effect = Exception("EPUB Error")
         with pytest.raises(RuntimeError, match="Failed to create EPUB"):
-            _create_epub_file("Title", "# Title\n## Ch1\nContent", "en")
+            _create_epub_file("Title", [("Ch1", "Content")], "en")
 
 
 def test_create_pdf_file_error():
@@ -517,4 +533,4 @@ def test_create_pdf_file_error():
     with patch("builtins.open", create=True) as mock_open:
         mock_open.side_effect = Exception("PDF Error")
         with pytest.raises(RuntimeError, match="Failed to create PDF"):
-            _create_pdf_file("Title", "Content", "en")
+            _create_pdf_file("Title", [("Ch1", "Content")], "en")

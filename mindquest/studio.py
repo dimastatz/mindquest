@@ -16,7 +16,6 @@ from mindquest.utils import search_wikikids, get_wikikids_summary
 from mindquest.utils.chatgpt import (
     generate_script_with_chatgpt,
     generate_audio_with_chatgpt,
-    generate_minibook_with_chatgpt,
     generate_minibook_outline,
     generate_chapter_content,
     generate_cover_image_with_dalle,
@@ -274,53 +273,27 @@ def create_minibook(
 
     context = f"Summary:\n{summary}\n\nSearch Results:\n{search_results}"
 
-    # 1. Generate Outline
-    print("📝 Generating outline...")
-    outline_raw = generate_minibook_outline(
+    # Generate content
+    chapters_data = _generate_minibook_chapters(
         topic, context, api_key, language, number_of_chapters
     )
-    
-    # Parse outline (assuming numbered list)
-    chapter_titles = []
-    for line in outline_raw.split('\n'):
-        # Match "1. Title" or "1 Title"
-        cleaned = re.sub(r'^\d+[\.\)]\s*', '', line).strip()
-        if cleaned:
-            chapter_titles.append(cleaned)
-    
-    # Limit to requested number if model halluncinated more
-    chapter_titles = chapter_titles[:number_of_chapters]
 
-    # 2. Generate Chapters (Iterative)
-    chapters_data: List[Tuple[str, str]] = []
-    print(f"✍️  Generating {len(chapter_titles)} chapters...")
-    
-    for title in chapter_titles:
-        print(f"   - {title}")
-        content = generate_chapter_content(topic, title, context, api_key, language)
-        # Remove the Title line if the model included it, to avoid duplication
-        # Simple heuristic: remove lines starting with # or ## that contain the title
-        lines = content.split('\n')
-        cleaned_lines = [l for l in lines if not (l.startswith('#') and title.lower() in l.lower())]
-        cleaned_content = '\n'.join(cleaned_lines).strip()
-        chapters_data.append((title, cleaned_content))
-
-    # 3. Generate Images
+    # Generate Images
     print("🎨 Generating cover image...")
     try:
         cover_image_bytes = generate_cover_image_with_dalle(topic, api_key)
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-exception-caught
         print(f"⚠️ Failed to generate cover image: {exc}")
         cover_image_bytes = None
 
     print("🧠 Generating mind map...")
     try:
         mind_map_bytes = generate_mindmap_image_with_dalle(topic, api_key)
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-exception-caught
         print(f"⚠️ Failed to generate mind map: {exc}")
         mind_map_bytes = None
 
-    # 4. Create Output
+    # Create Output
     if format == "ebup":
         return _create_epub_file(
             topic, chapters_data, language, "epub", cover_image_bytes, mind_map_bytes
@@ -331,6 +304,47 @@ def create_minibook(
     raise ValueError("Unsupported output format")
 
 
+def _generate_minibook_chapters(
+    topic: str, context: str, api_key: str, language: str, number_of_chapters: int
+) -> List[Tuple[str, str]]:
+    """Helper to generate outline and chapters."""
+    # 1. Generate Outline
+    print("📝 Generating outline...")
+    outline_raw = generate_minibook_outline(
+        topic, context, api_key, language, number_of_chapters
+    )
+
+    # Parse outline (assuming numbered list)
+    chapter_titles = []
+    for line in outline_raw.split("\n"):
+        # Match "1. Title" or "1 Title"
+        cleaned = re.sub(r"^\d+[\.\)]\s*", "", line).strip()
+        if cleaned:
+            chapter_titles.append(cleaned)
+
+    # Limit to requested number if model halluncinated more
+    chapter_titles = chapter_titles[:number_of_chapters]
+
+    # 2. Generate Chapters (Iterative)
+    chapters_data: List[Tuple[str, str]] = []
+    print(f"✍️  Generating {len(chapter_titles)} chapters...")
+
+    for title in chapter_titles:
+        print(f"   - {title}")
+        content = generate_chapter_content(topic, title, context, api_key, language)
+        # Remove the Title line if the model included it, to avoid duplication
+        # Simple heuristic: remove lines starting with # or ## that contain the title
+        lines = content.split("\n")
+        cleaned_lines = [
+            l for l in lines if not (l.startswith("#") and title.lower() in l.lower())
+        ]
+        cleaned_content = "\n".join(cleaned_lines).strip()
+        chapters_data.append((title, cleaned_content))
+
+    return chapters_data
+
+
+# pylint: disable=too-many-arguments, too-many-locals
 def _create_epub_file(
     title: str,
     chapters: List[Tuple[str, str]],
@@ -356,7 +370,7 @@ def _create_epub_file(
             book.set_cover("cover.jpg", cover_image)
 
         epub_chapters = []
-        
+
         # Add Mind Map as the first "chapter" / Front Matter if it exists
         if mind_map_image:
             mm_item = epub.EpubItem(
@@ -366,7 +380,7 @@ def _create_epub_file(
                 content=mind_map_image,
             )
             book.add_item(mm_item)
-            
+
             mm_page = epub.EpubHtml(title="Mind Map", file_name="mind_map.xhtml")
             mm_page.content = (
                 "<h1>Mind Map</h1>"
@@ -382,13 +396,13 @@ def _create_epub_file(
             chapter = epub.EpubHtml()
             chapter.file_name = f"chap_{i:02d}.xhtml"
             chapter.title = chapter_title
-            
+
             # Convert basic markdown to HTML
             html_body = chapter_content.replace("\n\n", "</p><p>")
             # Handle headers
-            html_body = re.sub(r'## (.*)', r'<h2>\1</h2>', html_body)
-            html_body = re.sub(r'\*\*(.*)\*\*', r'<b>\1</b>', html_body)
-            
+            html_body = re.sub(r"## (.*)", r"<h2>\1</h2>", html_body)
+            html_body = re.sub(r"\*\*(.*)\*\*", r"<b>\1</b>", html_body)
+
             chapter.content = f"<h1>{chapter_title}</h1>\n<p>{html_body}</p>"
             book.add_item(chapter)
             epub_chapters.append(chapter)
@@ -406,22 +420,18 @@ def _create_epub_file(
         raise RuntimeError(f"Failed to create EPUB: {exc}") from exc
 
 
-def _create_pdf_file(
-    title: str, 
-    chapters: List[Tuple[str, str]], 
-    language: str
-) -> str:
+def _create_pdf_file(title: str, chapters: List[Tuple[str, str]], language: str) -> str:
     """
     Create a PDF file from structured data.
     """
     try:
         filename = f"{title.lower().replace(' ', '_')}_{language}.pdf"
         output_path = Path(filename)
-        
+
         content = f"# {title}\n\n"
         for chap_title, chap_content in chapters:
             content += f"## {chap_title}\n\n{chap_content}\n\n"
-            
+
         with open(output_path, "w", encoding="utf-8") as file:
             file.write(content)
         return str(output_path.absolute())

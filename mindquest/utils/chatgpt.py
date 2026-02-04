@@ -84,48 +84,6 @@ def generate_audio_with_chatgpt(
         ) from exception
 
 
-def generate_minibook_with_chatgpt(
-    topic: str,
-    context: str,
-    api_key: str,
-    language: str = "en",
-    number_of_chapters: int = 7,
-) -> str:
-    """
-    Generate a mini-book using ChatGPT.
-    """
-    try:
-        client = OpenAI(api_key=api_key)
-
-        prompt = (
-            f"Generate a comprehensive mini-book in language code {language} for "
-            f"children aged 8-12 about '{topic}'.\n\n"
-            "The mini-book must:\n"
-            "1. Start with a Table of Contents.\n"
-            f"2. Include {number_of_chapters} chapters.\n"
-            "3. Each chapter should be around 200-300 words.\n"
-            "4. Each chapter must conclude with 3 knowledge assessment questions.\n"
-            "5. Include a section for a 'Mind Map' placeholder.\n"
-            "6. Format with markdown headers (# for title, ## for chapters).\n\n"
-            "Use this context from WikiKids:\n"
-            f"{context}\n\n"
-            f"Write the entire mini-book in language {language}."
-        )
-
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=4000,
-        )
-
-        return response.choices[0].message.content
-    except Exception as exception:
-        raise RuntimeError(
-            f"Failed to generate mini-book with ChatGPT: {str(exception)}"
-        ) from exception
-
-
 def generate_minibook_outline(
     topic: str,
     context: str,
@@ -139,7 +97,8 @@ def generate_minibook_outline(
     try:
         client = OpenAI(api_key=api_key)
         prompt = (
-            f"Create an outline for a children's mini-book about '{topic}' (Language: {language}).\n"
+            f"Create an outline for a children's mini-book about '{topic}' "
+            f"(Language: {language}).\n"
             f"Generate exactly {number_of_chapters} chapter titles.\n"
             "Format the output as a simple numbered list (1. Title...).\n"
             "Do not include any introduction or other text, just the list of chapters.\n\n"
@@ -169,7 +128,8 @@ def generate_chapter_content(
     try:
         client = OpenAI(api_key=api_key)
         prompt = (
-            f"Write the content for a chapter titled '{chapter_title}' for a book about '{topic}'.\n"
+            f"Write the content for a chapter titled '{chapter_title}' "
+            f"for a book about '{topic}'.\n"
             f"Target Audience: Children aged 8-12. Language: {language}.\n"
             "Requirements:\n"
             "1. Length: 250-350 words (Strictly enforce this).\n"
@@ -187,7 +147,9 @@ def generate_chapter_content(
         )
         return response.choices[0].message.content
     except Exception as exception:
-        raise RuntimeError(f"Failed to generate chapter '{chapter_title}': {exception}") from exception
+        raise RuntimeError(
+            f"Failed to generate chapter '{chapter_title}': {exception}"
+        ) from exception
 
 
 def generate_cover_image_with_dalle(topic: str, api_key: str) -> bytes:
@@ -241,7 +203,8 @@ def generate_mindmap_image_with_dalle(topic: str, api_key: str) -> bytes:
     try:
         client = OpenAI(api_key=api_key)
         prompt = (
-            f"A simple, colorful, educational mind map illustration explaining '{topic}' for children. "
+            f"A simple, colorful, educational mind map illustration explaining "
+            f"'{topic}' for children. "
             "Clear branches, icons, and text-like abstract shapes. White background. "
             "Cartoon style, easy to understand."
         )
@@ -253,7 +216,7 @@ def generate_mindmap_image_with_dalle(topic: str, api_key: str) -> bytes:
             quality="standard",
             n=1,
         )
-        
+
         image_url = response.data[0].url
         if not image_url:
             raise RuntimeError("No image URL returned")

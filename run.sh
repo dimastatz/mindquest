@@ -44,10 +44,6 @@ elif [ $1 = "-docker" ]; then
     # build docker and run
     docker build --tag mindquest-image --build-arg CACHEBUST=$(date +%s) . --file Dockerfile.test
     docker run --name mindquest-container -p 8888:8888 -d mindquest-image
-elif [ $1 = "-run-server" ]; then
-    echo "Running mindquest server"
-    kill $(lsof -t -i:8181) 
-    uvicorn mindquest.fast_server:app --host 0.0.0.0 --port 8181
 elif [ $1 = "-test-package" ]; then
     echo "Running mindquest package setup"
     # pip install twine
@@ -65,8 +61,7 @@ else
     2. '-docker' to build and run docker container
     3. '-test' to run linter, formatter and tests
     4. '-benchmark' to run benchmark tests
-    5. '-run-server' to run fastapi server
-    6. '-setup' to run package setup"
+    5. '-setup' to run package setup"
 fi
 
 trap : 0

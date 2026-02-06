@@ -14,7 +14,7 @@ def main():
         chapters_input = input("Enter number of chapters (default 7): ").strip()
         number_of_chapters = int(chapters_input) if chapters_input else 7
         
-        if not topic
+        if not topic:
             print("Error: Topic is required.")
             sys.exit(1)
             

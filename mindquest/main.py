@@ -108,7 +108,7 @@ def handle_create_minibook(api_key: str):
     topic = get_user_input("Enter the educational topic")
     lang = get_user_input("Language code", default="en")
     chapters = get_user_input("Number of chapters", default="5")
-    fmt = get_user_input("Format (ebup/pdf)", default="ebup")
+    fmt = get_user_input("Format (epub/pdf)", default="epub")
 
     try:
         print(f"\n⏳ Creating mini-book on '{topic}'...")

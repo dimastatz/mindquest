@@ -312,7 +312,7 @@ def test_create_minibook_with_parameters():
         mock_chapter.return_value = "Content"
 
         create_minibook(
-            "key", "Topic", language="he", number_of_chapters=5, format="ebup"
+            "key", "Topic", language="he", number_of_chapters=5, format="epub"
         )
         assert mock_outline.called
         assert mock_outline.call_args[0][4] == 5  # Check number_of_chapters passed

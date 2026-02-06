@@ -240,7 +240,7 @@ def create_minibook(
     topic: str,
     language="en",
     number_of_chapters=7,
-    format="ebup",
+    format="epub",
 ) -> str:
     """
     Generate an educational mini-book for children aged 8-12.
@@ -250,7 +250,7 @@ def create_minibook(
         topic: The educational topic for the mini-book.
         language: Language code (default: 'en').
         number_of_chapters: Number of chapters (default: 7).
-        format: Output format - 'ebup' or 'pdf' (default: 'ebup').
+        format: Output format - 'epub' or 'pdf' (default: 'epub').
 
     Returns:
         Path to the generated file.
@@ -261,8 +261,8 @@ def create_minibook(
     if not topic or not isinstance(topic, str) or topic.strip() == "":
         raise ValueError("Topic must be a non-empty string")
 
-    if format not in ("ebup", "pdf"):
-        raise ValueError("Output format must be 'ebup' or 'pdf'")
+    if format not in ("epub", "pdf"):
+        raise ValueError("Output format must be 'epub' or 'pdf'")
 
     topic = topic.strip()
     print(f"📖 Starting mini-book generation for: {topic}")
@@ -294,7 +294,7 @@ def create_minibook(
         mind_map_bytes = None
 
     # Create Output
-    if format == "ebup":
+    if format == "epub":
         return _create_epub_file(
             topic, chapters_data, language, "epub", cover_image_bytes, mind_map_bytes
         )

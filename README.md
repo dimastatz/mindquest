@@ -22,7 +22,7 @@
 
 <a href="https://www.youtube.com/watch?v=-s2KpRE5j9U" align="center">
     <text align="center">🎬 Watch on YouTube</text> <br>
-  <img src="./docs/imgs/mindquest_youtube.png" width="512" />
+  <img src="https://github.com/dimastatz/mindquest/blob/main/docs/imgs/mindquest_youtube.png?raw=true" width="512" />
 </a>
 <br/>
 

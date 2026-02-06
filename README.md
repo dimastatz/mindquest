@@ -41,7 +41,16 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Generate Your First Podcast
+### Interactive Studio
+
+Run the guided CLI to create scripts, podcasts, or mini-books:
+
+```bash
+export OPENAI_API_KEY='your-key-here'
+python3 -m mindquest.main
+```
+
+### Generate Your First Podcast (Python API)
 
 ```python
 import os

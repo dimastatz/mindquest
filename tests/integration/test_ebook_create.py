@@ -1,10 +1,12 @@
+"""Integration tests for ebook creation workflow."""
+
 import os
 import pytest
 from mindquest.studio import create_minibook
 
 
 @pytest.mark.integration
-def test_ebook_creation_integration(tmp_path):
+def test_ebook_creation_integration():
     """
     Integration test for creating a mini-book.
     Requires OPENAI_API_KEY to be set in the environment.
@@ -16,11 +18,6 @@ def test_ebook_creation_integration(tmp_path):
     topic = "The History of Printing"
     language = "en"
     number_of_chapters = 2  # Keep it small to save costs/time
-
-    # Change working directory to tmp_path so the file is created there
-    # or ensure create_minibook returns an absolute path or we can find it.
-    # Assuming create_minibook writes to CWD or returns path.
-    # Ideally, we'd mock the file writing or run this in a temporary directory.
 
     # We'll run it and check the return value.
     try:
@@ -40,5 +37,5 @@ def test_ebook_creation_integration(tmp_path):
         if os.path.exists(output_path):
             os.remove(output_path)
 
-    except Exception as e:
-        pytest.fail(f"Mini-book creation failed with error: {e}")
+    except Exception as error:  # pylint: disable=broad-exception-caught
+        pytest.fail(f"Mini-book creation failed with error: {error}")

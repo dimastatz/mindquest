@@ -1,0 +1,6 @@
+[run]
+omit =
+    # Exclude the interactive CLI entry point
+    mindquest/main.py
+    # Exclude tests themselves
+    tests/*

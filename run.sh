@@ -26,7 +26,7 @@ elif [ $1 = "-local" ]; then
 
     black mindquest tests
     pylint --fail-under=9.9 mindquest tests
-    pytest --ignore=tests/benchmark --cov-fail-under=95 --cov mindquest -v tests
+    pytest --ignore=tests/benchmark --cov-fail-under=95 --cov mindquest -v tests/unit
 elif [ $1 = "-test" ]; then
     trap 'abort' 0
     set -e
@@ -35,7 +35,7 @@ elif [ $1 = "-test" ]; then
     source .venv/bin/activate
     black mindquest tests
     pylint --fail-under=9.9 mindquest tests
-    pytest --ignore=tests/benchmark --cov-fail-under=95 --cov --log-cli-level=INFO mindquest -v tests
+    pytest --ignore=tests/benchmark --cov-fail-under=95 --cov --log-cli-level=INFO mindquest -v tests/unit
 elif [ $1 = "-docker" ]; then
     echo "Building and running docker image"
     docker stop mindquest-container

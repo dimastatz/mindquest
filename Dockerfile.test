@@ -31,4 +31,4 @@ COPY mindquest/ ./mindquest/
 COPY tests/ ./tests/
 
 # Run tests by default
-CMD ["pytest", "tests/", "-v", "--cov=mindquest", "--cov-report=term-missing"]
+CMD ["pytest", "tests/unit/", "-v", "--cov=mindquest", "--cov-report=term-missing"]

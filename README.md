@@ -20,7 +20,11 @@
   - **Plato**: A wise, calm professor who explains concepts
   - **Pixel**: A curious, energetic 10-year-old asking questions
 
-The entire system is built with **pure functional programming**, comprehensive testing (95%+ coverage), and production-grade code quality.
+<a href="https://www.youtube.com/watch?v=-s2KpRE5j9U" align="center">
+    <text align="center">🎬 Watch on YouTube</text> <br>
+  <img src="./docs/imgs/mindquest_youtube.png" width="512" />
+</a>
+<br/>
 
 ---
 

@@ -6,7 +6,7 @@
 
 ## The Problem: Entertainment vs. Education
 
-Your child wants to learn about quantum physics. What you actually want: to ensure they're not learning it from a TikTok algorithm trained on engagement metrics and speculation.
+Your child wants to learn about drones. What you actually want: to ensure they're not learning it from a TikTok algorithm trained on engagement metrics and speculation.
 
 This is not an edge case.
 
@@ -18,18 +18,12 @@ We built MindQuest because path C should exist.
 
 ## What Is MindQuest?
 
-MindQuest is an educational content generation system. It produces podcasts and ebooks from verified sources in minutes. Rather than generic explanations, it structures information through dialogue between two characters: Plato (a teacher) and Pixel (a student), using:
+MindQuest is an educational content generation system. It produces podcasts and e-books in more than 10 languages, from verified sources in minutes. In podcasts, rather than generic explanations, it structures information through dialogue between two characters: Plato (a teacher) and Pixel (a student), using:
 
 - **WikiKids API** — Verified, age-appropriate source material
-- **ChatGPT-4** — Dialogue composition
+- **ChatGPT** — Podcasts scripts and e-books composition
 - **OpenAI TTS** — Character-differentiated audio synthesis
-- **EPUB/PDF Generation** — Structured documentation with assessment components
-
-**Per invocation, the system produces:**
-- Audio content (5 minutes, approximately 2.5 MB)
-- Structured documentation (8–10 chapters, 3 assessment questions per chapter)
-- Localized content (10+ languages)
-- All derived from verified sources
+- **EPUB/PDF Generation** — e-books with assessment components
 
 ```python
 # Generate educational material in Hebrew regarding FPV Drones

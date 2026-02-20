@@ -18,7 +18,7 @@ The system must expose three primary pure functions to handle script generation 
 * **Signature:** `create_minibook(api_key: str, topic: str, language='en', number_of_chapters=7, format='ebub') -> str`
 * **Workflow:**
 1. Accept a topic string.
-2. Search **WikiKids** to gather factual, age-appropriate information.
+2. Search **WikiKids** and **Google Scholar** to gather factual, age-appropriate information.
 3. Utilize **ChatGPT LLM** to synthesize the gathered data into a mini book
 4. Make it accessible to 8-12 y.o. Engaging and easy to read.
 5. Organize the content into chapters, each chapter of 200-300 words, with three knowledge assessment questions following each chapter. Add Table of content in the beginning and a mind map diagramm. Add a nice image pixar like on the cover.
